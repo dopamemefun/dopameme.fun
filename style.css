@@ -29,6 +29,30 @@ body {
     cursor: url('custom-cursor.png'), auto; /* Make sure 'custom-cursor.png' is your resized cursor */
 }
 
+/* --- NEW: Styling for the Main Content Wrapper (the black box for tilt/bass) --- */
+.main-content-wrapper {
+    display: flex; /* Use flexbox to stack header and audio player inside */
+    flex-direction: column; /* Stack them vertically */
+    align-items: center; /* Center items horizontally within the wrapper */
+    gap: 30px; /* Space between the header-section and audio-player-container */
+    
+    background-color: rgba(0, 0, 0, 0.7); /* The black box background */
+    border-radius: 15px;
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.5), 0 0 50px rgba(0, 255, 204, 0.2);
+    padding: 30px 50px; /* Padding inside the black box */
+
+    /* Tilt/Bass properties now applied to the wrapper */
+    transform-style: preserve-3d;
+    transform: rotateX(0deg) rotateY(0deg); /* Initial state */
+    transition: transform 0.1s ease-out; /* Smooth transition for tilt */
+    will-change: transform; /* Performance optimization */
+
+    /* Max width to keep it contained, adjust as needed */
+    max-width: 700px;
+    width: 90%;
+}
+
+
 /* Style for the glitching text (Dopameme) */
 #glitchText {
     font-family: 'Press Start 2P', cursive;
@@ -42,32 +66,29 @@ body {
 }
 
 /* Styling for the container that holds your main title and intro text */
+/* This now only handles text alignment, its visual box properties are on .main-content-wrapper */
 .header-section {
     text-align: center;
-    padding: 30px 50px;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: 15px;
-    box-shadow: 0 0 25px rgba(0, 255, 204, 0.5), 0 0 50px rgba(0, 255, 204, 0.2);
-    margin-bottom: 40px; /* Space between the box and the music player */
-
-    transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(0deg);
-    transition: transform 0.1s ease-out;
-    will-change: transform;
+    /* Removed: padding, background-color, border-radius, box-shadow, margin-bottom */
+    /* Removed: transform-style, transform, transition, will-change as they are on the wrapper */
 }
 
 
-/* --- NEW: Custom Audio Player Styling --- */
+/* --- Custom Audio Player Styling --- */
 .audio-player-container {
     display: flex; /* Use flexbox to align album art and controls */
-    background-color: rgba(0, 0, 0, 0.8); /* Darker background for the player */
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); /* Glow effect for the player */
-    width: 90%; /* Adjust width as needed */
-    max-width: 600px; /* Max width for larger screens */
+    /* Removed background-color, border-radius, box-shadow, padding as it's now on the wrapper */
+    /* Instead, player-visuals and player-controls might have their own subtle backgrounds if needed */
+    
+    /* Reduced width as it's now inside a padded wrapper */
+    width: 100%; /* Take full width of the main-content-wrapper's content area */
+    max-width: 500px; /* Limit player width inside the wrapper */
     align-items: center; /* Vertically align items in the container */
     gap: 20px; /* Space between album art and controls */
+    /* Add a subtle background for the player if you want it to stand out inside the wrapper */
+    background-color: rgba(0, 0, 0, 0.5); /* Slightly darker than wrapper to show separation */
+    padding: 15px;
+    border-radius: 8px;
 }
 
 .player-visuals {
