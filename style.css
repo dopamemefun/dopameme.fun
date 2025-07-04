@@ -1,232 +1,261 @@
-/* General body styles for a dark theme and centering content */
-body {
-    background-color: #1a1a1a; /* Fallback color if GIF doesn't load */
-    color: #e0e0e0; /* Light gray text color for general content */
-    font-family: 'Arial', sans-serif; /* A fallback simple font for the body */
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Shared Glitch Logic ---
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:",.<>/?~`';
+
+    function getRandomChar() {
+        return characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    // --- Glitch effect for the ON-PAGE <h1> text (Dopameme) ---
+    const glitchElement = document.getElementById('glitchText');
+    const originalBodyText = glitchElement.textContent; // Store original body text
+
+    let bodyGlitchInterval;
+
+    function applyBodyTextReadableGlitch() {
+        let glitchedText = '';
+        for (let i = 0; i < originalBodyText.length; i++) {
+            if (Math.random() < 0.2) {
+                glitchedText += getRandomChar();
+            } else {
+                glitchedText += originalBodyText[i];
+            }
+        }
+        glitchElement.textContent = glitchedText;
+    }
+
+    function startBodyGlitchCycle() {
+        let cycleCount = 0;
+        const maxCycles = 5;
+
+        bodyGlitchInterval = setInterval(() => {
+            applyBodyTextReadableGlitch();
+            cycleCount++;
+            if (cycleCount >= maxCycles) {
+                clearInterval(bodyGlitchInterval);
+                glitchElement.textContent = originalBodyText;
+                setTimeout(startBodyGlitchCycle, 3000);
+            }
+        }, 100);
+    }
+
+    // Initial start for on-page text
+    startBodyGlitchCycle();
+
+
+    // --- Glitch effect for the BROWSER TAB TITLE ---
+    const originalTitle = document.title;
+
+    let titleGlitchInterval;
+
+    function applyTitleChaoticGlitch() {
+        let glitchedTitle = '';
+        for (let i = 0; i < originalTitle.length; i++) {
+            if (Math.random() < 0.8) {
+                glitchedTitle += getRandomChar();
+            } else {
+                glitchedTitle += originalTitle[i];
+            }
+        }
+        document.title = glitchedTitle;
+    }
+
+    function startTitleGlitchCycle() {
+        let cycleCount = 0;
+        const maxCycles = 4;
+
+        titleGlitchInterval = setInterval(() => {
+            applyTitleChaoticGlitch();
+            cycleCount++;
+            if (cycleCount >= maxCycles) {
+                clearInterval(titleGlitchInterval);
+                document.title = originalTitle;
+                setTimeout(startTitleGlitchCycle, 4000);
+            }
+        }, 150);
+    }
+
+    // Initial start for tab title
+    startTitleGlitchCycle();
+
+    // --- Tilt Effect Logic ---
+    // UPDATED: Target the new .main-content-wrapper for tilt and bass effects
+    const tiltBox = document.querySelector('.main-content-wrapper'); 
+    const maxTilt = 10; // Maximum tilt in degrees
+
+    document.addEventListener('mousemove', (e) => {
+        const rect = tiltBox.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const mouseX = (e.clientX - centerX) / (rect.width / 2);
+        const mouseY = (e.clientY - centerY) / (rect.height / 2);
+
+        const rotateY = mouseX * maxTilt;
+        const rotateX = -mouseY * maxTilt;
+
+        // Apply mouse tilt (bass effect will be added as an additional transform)
+        // Store current rotation values to combine with scale later in drawBassVisualization
+        tiltBox.dataset.rotateX = rotateX;
+        tiltBox.dataset.rotateY = rotateY;
+        
+        // This will be called frequently by mousemove, so we need to ensure it combines
+        // with the scale from bass visualization without overwriting.
+        // The drawBassVisualization function handles the combination.
+        // For immediate feedback during mouse move, we can set a base transform here.
+        // It's crucial that drawBassVisualization later processes and adds scale.
+        // Simplified: The full transform will be handled in drawBassVisualization.
+        // For now, let's ensure the initial transform is set up correctly.
+        // We'll update the drawBassVisualization to properly combine stored rotations with scale.
+        updateCombinedTransform();
+    });
+
+    document.addEventListener('mouseleave', () => {
+        // Reset tilt on mouse leave
+        tiltBox.dataset.rotateX = 0;
+        tiltBox.dataset.rotateY = 0;
+        updateCombinedTransform(); // Update transform to reset
+    });
+
+
+    // --- Audio Player and Bass Visualization Logic ---
+    const musicTrack = document.getElementById('musicTrack');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressBarFill = document.getElementById('progressBarFill');
+    const currentTimeSpan = document.getElementById('currentTime');
+    const totalTimeSpan = document.getElementById('totalTime');
+    const playPauseIcon = playPauseBtn.querySelector('.material-icons'); // Get the icon element
+
+    let audioContext;
+    let analyser;
+    let source;
+    // Set a smaller bufferLength for more sensitive bass detection if needed
+    // const bufferLength = 2048; // Default from previous step, keeping for consistency
+    const dataArray = new Uint8Array(256); // analyser.fftSize / 2 for frequency data
+
+    // Function to format time (e.g., 1:05 -> 01:05)
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    }
+
+    // Initialize Web Audio API on first user interaction
+    function initAudioContext() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            source = audioContext.createMediaElementSource(musicTrack);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256; // Smaller FFT size for faster updates and more relevant bass data
+            // dataArray should be half of fftSize
+            // dataArray = new Uint8Array(analyser.frequencyBinCount); // This would be 128
+
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            // Start the visualization loop
+            drawBassVisualization();
+        }
+    }
+
+    // Play/Pause Button Logic
+    playPauseBtn.addEventListener('click', () => {
+        initAudioContext(); // Initialize context on first click
+        if (musicTrack.paused) {
+            musicTrack.play();
+            playPauseIcon.textContent = 'pause'; // Change icon to pause
+        } else {
+            musicTrack.pause();
+            playPauseIcon.textContent = 'play_arrow'; // Change icon to play
+        }
+    });
+
+    // Update Time and Progress Bar
+    musicTrack.addEventListener('loadedmetadata', () => {
+        totalTimeSpan.textContent = formatTime(musicTrack.duration);
+        progressBar.max = musicTrack.duration; // Set max value of slider to total duration
+    });
+
+    musicTrack.addEventListener('timeupdate', () => {
+        currentTimeSpan.textContent = formatTime(musicTrack.currentTime);
+        const progressPercent = (musicTrack.currentTime / musicTrack.duration) * 100;
+        progressBarFill.style.width = `${progressPercent}%`;
+        progressBar.value = musicTrack.currentTime; // Update slider position
+    });
+
+    // Handle user seeking on the progress bar
+    progressBar.addEventListener('input', () => {
+        musicTrack.currentTime = progressBar.value;
+    });
     
-    /* These properties center the content vertically and horizontally */
-    display: flex;
-    flex-direction: column; /* Changed to column to stack elements vertically */
-    align-items: center;
-    justify-content: center; /* Adjusted as content might expand vertically */
+    // Reset play button icon if audio ends
+    musicTrack.addEventListener('ended', () => {
+        playPauseIcon.textContent = 'play_arrow';
+    });
+
+
+    // Global variables to store current rotation values from mousemove
+    // These will be updated by mousemove and used by drawBassVisualization
+    tiltBox.dataset.rotateX = 0; // Initialize custom data attributes
+    tiltBox.dataset.rotateY = 0;
+
+    function updateCombinedTransform() {
+        const currentRotateX = parseFloat(tiltBox.dataset.rotateX) || 0;
+        const currentRotateY = parseFloat(tiltBox.dataset.rotateY) || 0;
+        
+        let dynamicScale = parseFloat(tiltBox.dataset.scale) || 1.0; // Get scale from bass visualization
+
+        tiltBox.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg) scale(${dynamicScale})`;
+    }
+
+
+    // Bass Visualization Loop
+    function drawBassVisualization() {
+        requestAnimationFrame(drawBassVisualization); // Loop indefinitely
+
+        if (!analyser || musicTrack.paused) {
+            // If paused or analyser not ready, reset scale but keep current tilt
+            tiltBox.dataset.scale = 1.0; // Reset scale to default
+            updateCombinedTransform(); // Apply updated transform
+            return;
+        }
+
+        analyser.getByteFrequencyData(dataArray); // Populate dataArray with frequency data
+
+        // Calculate average bass (lower frequencies)
+        // analyser.fftSize = 256 means frequencyBinCount = 128
+        // Each bin represents approx. 44100 / 2 / 128 = ~172 Hz per bin if sampleRate is 44100
+        // If fftSize is 256, frequencyBinCount is 128.
+        // So indices 0-2 (0-344 Hz) could be a good bass range
+        // Or 0-5 for a wider low-end.
+        let bassSum = 0;
+        // The first few bins represent the lowest frequencies
+        const bassBandCount = 5; // Consider first 5 bins for bass
+        
+        for (let i = 0; i < bassBandCount; i++) {
+            bassSum += dataArray[i];
+        }
+        let averageBass = bassSum / bassBandCount;
+
+        // Map averageBass (0-255) to a scale factor (e.g., 1.0 to 1.05)
+        const minScale = 1.0;
+        const maxScale = 1.03; // Max scale for the "jump" effect (reduced for subtlety)
+        const bassThreshold = 60; // Only react if bass is above this level (adjusted slightly)
+        
+        let dynamicScale = minScale;
+        if (averageBass > bassThreshold) {
+            dynamicScale = minScale + ((averageBass - bassThreshold) / (255 - bassThreshold)) * (maxScale - minScale);
+        }
+        dynamicScale = Math.min(maxScale, Math.max(minScale, dynamicScale)); // Clamp value
+
+        // Store dynamic scale in a data attribute for updateCombinedTransform to use
+        tiltBox.dataset.scale = dynamicScale;
+        
+        // Update the combined transform (tilt + scale)
+        updateCombinedTransform();
+    }
     
-    min-height: 100vh; /* Ensures the body takes at least the full height of the viewport */
-    margin: 0; /* Removes default body margin */
-    padding: 20px; /* Added padding to prevent content from touching edges */
-    box-sizing: border-box; /* Include padding in element's total width/height */
-
-    /* --- BACKGROUND GIF PROPERTIES --- */
-    background-image: url('background.gif'); /* CHANGE THIS to your GIF's filename and path */
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-
-    /* --- New for 3D Tilt Effect --- */
-    perspective: 1000px; /* Defines the 3D viewing distance for children */
-
-    /* --- CUSTOM CURSOR --- */
-    cursor: url('custom-cursor.png'), auto; /* Make sure 'custom-cursor.png' is your resized cursor */
-}
-
-/* --- NEW: Styling for the Main Content Wrapper (the black box for tilt/bass) --- */
-.main-content-wrapper {
-    display: flex; /* Use flexbox to stack header and audio player inside */
-    flex-direction: column; /* Stack them vertically */
-    align-items: center; /* Center items horizontally within the wrapper */
-    gap: 30px; /* Space between the header-section and audio-player-container */
-    
-    background-color: rgba(0, 0, 0, 0.7); /* The black box background */
-    border-radius: 15px;
-    box-shadow: 0 0 25px rgba(0, 255, 204, 0.5), 0 0 50px rgba(0, 255, 204, 0.2);
-    padding: 30px 50px; /* Padding inside the black box */
-
-    /* Tilt/Bass properties now applied to the wrapper */
-    transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(0deg); /* Initial state */
-    transition: transform 0.1s ease-out; /* Smooth transition for tilt */
-    will-change: transform; /* Performance optimization */
-
-    /* Max width to keep it contained, adjust as needed */
-    max-width: 700px;
-    width: 90%;
-}
-
-
-/* Style for the glitching text (Dopameme) */
-#glitchText {
-    font-family: 'Press Start 2P', cursive;
-    font-size: 3em;
-    font-weight: bold;
-    color: #00ffcc;
-    text-shadow:
-        0 0 5px #00ffcc,
-        0 0 10px #00ffcc,
-        0 0 15px rgba(0, 255, 204, 0.5);
-}
-
-/* Styling for the container that holds your main title and intro text */
-/* This now only handles text alignment, its visual box properties are on .main-content-wrapper */
-.header-section {
-    text-align: center;
-    /* Removed: padding, background-color, border-radius, box-shadow, margin-bottom */
-    /* Removed: transform-style, transform, transition, will-change as they are on the wrapper */
-}
-
-
-/* --- Custom Audio Player Styling --- */
-.audio-player-container {
-    display: flex; /* Use flexbox to align album art and controls */
-    /* Removed background-color, border-radius, box-shadow, padding as it's now on the wrapper */
-    /* Instead, player-visuals and player-controls might have their own subtle backgrounds if needed */
-    
-    /* Reduced width as it's now inside a padded wrapper */
-    width: 100%; /* Take full width of the main-content-wrapper's content area */
-    max-width: 500px; /* Limit player width inside the wrapper */
-    align-items: center; /* Vertically align items in the container */
-    gap: 20px; /* Space between album art and controls */
-    /* Add a subtle background for the player if you want it to stand out inside the wrapper */
-    background-color: rgba(0, 0, 0, 0.5); /* Slightly darker than wrapper to show separation */
-    padding: 15px;
-    border-radius: 8px;
-}
-
-.player-visuals {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-shrink: 0; /* Prevent visuals from shrinking */
-}
-
-#albumArt {
-    width: 80px; /* Size of the album art */
-    height: 80px;
-    border-radius: 8px; /* Slightly rounded corners for album art */
-    object-fit: cover; /* Ensures image covers the area without distortion */
-    box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); /* Subtle shadow for album art */
-}
-
-.song-info {
-    color: #e0e0e0;
-    font-size: 0.9em;
-}
-
-.song-info .song-title {
-    font-weight: bold;
-    font-size: 1.1em;
-    margin-bottom: 5px;
-    color: #00ffcc; /* Bright color for the title */
-}
-
-.song-info .song-artist {
-    color: #a0a0a0; /* Slightly muted color for artist */
-}
-
-.player-controls {
-    flex-grow: 1; /* Allows controls to take up remaining space */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.time-display {
-    font-size: 0.8em;
-    color: #a0a0a0;
-    text-align: right; /* Align time display to the right */
-}
-
-.progress-bar-container {
-    position: relative;
-    width: 100%;
-    height: 8px; /* Height of the progress bar track */
-    background-color: rgba(255, 255, 255, 0.1); /* Light gray for the track */
-    border-radius: 5px;
-    overflow: hidden; /* Ensures fill stays within bounds */
-}
-
-#progressBarFill {
-    height: 100%;
-    width: 0%; /* Will be controlled by JavaScript */
-    background-color: #00ffcc; /* Green fill color */
-    border-radius: 5px;
-    transition: width 0.1s linear; /* Smooth fill movement */
-}
-
-/* Style the actual range input (slider) for interactivity */
-#progressBar {
-    position: absolute; /* Position over the fill and container */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    -webkit-appearance: none; /* Hide default slider styles for Chrome/Safari */
-    appearance: none;
-    background: transparent; /* Make the input transparent */
-    cursor: grab;
-    z-index: 2; /* Ensure it's clickable */
-}
-
-/* Styles for the slider thumb (the draggable part) */
-#progressBar::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 15px; /* Width of the thumb */
-    height: 15px; /* Height of the thumb */
-    background: #00ffcc; /* Color of the thumb */
-    border-radius: 50%; /* Make it circular */
-    cursor: grab;
-    box-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
-    margin-top: -3.5px; /* Adjust to center vertically */
-    /* This makes the thumb visible */
-    background-color: #00ffcc; /* Add to ensure visibility */
-}
-
-#progressBar::-moz-range-thumb {
-    width: 15px;
-    height: 15px;
-    background: #00ffcc;
-    border-radius: 50%;
-    cursor: grab;
-    box-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
-}
-
-/* Styles for the slider track (the non-filled part) for Firefox */
-#progressBar::-moz-range-track {
-    background: transparent; /* Make track transparent as we use progressBarFill */
-}
-
-.playback-buttons {
-    display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    align-items: center;
-}
-
-#playPauseBtn {
-    background-color: #00ffcc; /* Green button background */
-    color: #1a1a1a; /* Dark text/icon color */
-    border: none;
-    border-radius: 50%; /* Circular button */
-    width: 40px; /* Size of the button */
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    font-size: 24px; /* Size of the icon */
-    box-shadow: 0 0 10px rgba(0, 255, 204, 0.6); /* Glow effect */
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-#playPauseBtn:hover {
-    background-color: #00e6b8; /* Slightly darker green on hover */
-    transform: scale(1.05); /* Slight scale on hover */
-}
-
-#playPauseBtn:active {
-    transform: scale(0.95); /* Slight press effect on click */
-}
-
-/* Hide the native audio controls */
-audio {
-    display: none;
-}
+    // Initial call to set the combined transform for mouseleave and initial load
+    updateCombinedTransform(); 
+});
