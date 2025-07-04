@@ -1,239 +1,301 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const glitchText = document.getElementById('glitchText');
+    // --- Entry Screen Elements ---
+    const entryScreen = document.getElementById('entryScreen');
     const enterSiteBtn = document.getElementById('enterSiteBtn');
-    const entryScreen = document.querySelector('.entry-screen');
-    const siteContent = document.getElementById('siteContent'); // Changed from .site-content to #siteContent
-    const mainContentWrapper = document.querySelector('.main-content-wrapper');
+    const siteContent = document.getElementById('siteContent'); // Get the new siteContent div
 
-    // Audio Elements
+    // --- Shared Glitch Logic ---
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_+-=|;:",./?~`';
+
+    function getRandomChar() {
+        return characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    // --- Glitch effect for the ON-PAGE <h1> text (Dopameme) ---
+    const glitchElement = document.getElementById('glitchText');
+    const originalBodyText = glitchElement.textContent; // Store original body text
+
+    let bodyGlitchInterval;
+
+    function applyBodyTextReadableGlitch() {
+        let glitchedText = '';
+        for (let i = 0; i < originalBodyText.length; i++) {
+            if (Math.random() < 0.2) {
+                glitchedText += getRandomChar();
+            } else {
+                glitchedText += originalBodyText[i];
+            }
+        }
+        glitchElement.textContent = glitchedText;
+    }
+
+    function startBodyGlitchCycle() {
+        let cycleCount = 0;
+        const maxCycles = 5;
+
+        bodyGlitchInterval = setInterval(() => {
+            applyBodyTextReadableGlitch();
+            cycleCount++;
+            if (cycleCount >= maxCycles) {
+                clearInterval(bodyGlitchInterval);
+                glitchElement.textContent = originalBodyText;
+                setTimeout(startBodyGlitchCycle, 3000);
+            }
+        }, 100);
+    }
+
+    // --- Glitch effect for the BROWSER TAB TITLE ---
+    const originalTitle = document.title;
+
+    let titleGlitchInterval;
+
+    function applyTitleChaoticGlitch() {
+        let glitchedTitle = '';
+        for (let i = 0; i < originalTitle.length; i++) {
+            if (Math.random() < 0.8) {
+                glitchedTitle += getRandomChar();
+            } else {
+                glitchedTitle += originalTitle[i];
+            }
+        }
+        document.title = glitchedTitle;
+    }
+
+    function startTitleGlitchCycle() {
+        let cycleCount = 0;
+        const maxCycles = 4;
+
+        titleGlitchInterval = setInterval(() => {
+            applyTitleChaoticGlitch();
+            cycleCount++;
+            if (cycleCount >= maxCycles) {
+                clearInterval(titleGlitchInterval);
+                document.title = originalTitle;
+                setTimeout(startTitleGlitchCycle, 4000);
+            }
+        }, 150);
+    }
+
+    // --- Tilt Effect Logic ---
+    const tiltBox = document.querySelector('.main-content-wrapper'); 
+    const maxTilt = 10; // Maximum tilt in degrees
+
+    tiltBox.dataset.rotateX = 0; 
+    tiltBox.dataset.rotateY = 0;
+    tiltBox.dataset.scale = 1.0; 
+
+    function updateCombinedTransform() {
+        const currentRotateX = parseFloat(tiltBox.dataset.rotateX) || 0;
+        const currentRotateY = parseFloat(tiltBox.dataset.rotateY) || 0;
+        const dynamicScale = parseFloat(tiltBox.dataset.scale) || 1.0; 
+
+        tiltBox.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg) scale(${dynamicScale})`;
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        // Only apply tilt if siteContent is active (visible)
+        if (siteContent.classList.contains('active')) {
+            const rect = tiltBox.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const mouseX = (e.clientX - centerX) / (rect.width / 2);
+            const mouseY = (e.clientY - centerY) / (rect.height / 2);
+
+            const rotateY = mouseX * maxTilt;
+            const rotateX = -mouseY * maxTilt;
+
+            tiltBox.dataset.rotateX = rotateX;
+            tiltBox.dataset.rotateY = rotateY;
+            
+            updateCombinedTransform();
+        }
+    });
+
+    document.addEventListener('mouseleave', () => {
+        if (siteContent.classList.contains('active')) { // Only reset tilt if siteContent is active
+            tiltBox.dataset.rotateX = 0;
+            tiltBox.dataset.rotateY = 0;
+            updateCombinedTransform(); 
+        }
+    });
+
+
+    // --- Audio Player, Bass Visualization, and Volume Logic ---
     const musicTrack = document.getElementById('musicTrack');
     const playPauseBtn = document.getElementById('playPauseBtn');
-    const playPauseIcon = document.getElementById('playPauseIcon');
     const progressBar = document.getElementById('progressBar');
     const progressBarFill = document.getElementById('progressBarFill');
-    const currentTimeDisplay = document.getElementById('currentTime');
-    const durationDisplay = document.getElementById('duration');
+    const currentTimeSpan = document.getElementById('currentTime');
+    const totalTimeSpan = document.getElementById('totalTime');
+    const playPauseIcon = playPauseBtn.querySelector('.material-icons');
+    
     const volumeBar = document.getElementById('volumeBar');
     const volumeIcon = document.getElementById('volumeIcon');
 
-    // Web Audio API for Bass Effect
     let audioContext;
     let analyser;
     let source;
-    let gainNode; // For master volume control
+    const dataArray = new Uint8Array(128); 
 
-    const initAudioContext = () => {
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    }
+
+    // Initialize Web Audio API on first user interaction
+    function initAudioContext() {
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             source = audioContext.createMediaElementSource(musicTrack);
-            gainNode = audioContext.createGain(); // Create a GainNode for volume control
-
             analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256; // Smaller FFT size for quicker bass detection
-            
-            // Connect the source -> analyser -> gainNode -> destination
+            analyser.fftSize = 256; 
+
             source.connect(analyser);
-            analyser.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            analyser.connect(audioContext.destination);
 
-            // Set initial volume from the slider
-            gainNode.gain.value = volumeBar.value;
+            // Start the visualization loop
+            drawBassVisualization();
         }
-    };
-
-    // Glitch effect for Dopameme text
-    if (glitchText) {
-        setInterval(() => {
-            glitchText.textContent = 'DOPAMEME'; // Reset text
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*+=|;:,.?';
-            let glitch = '';
-            for (let i = 0; i < glitchText.textContent.length; i++) {
-                if (Math.random() < 0.2) { // 20% chance to glitch a character
-                    glitch += chars.charAt(Math.floor(Math.random() * chars.length));
-                } else {
-                    glitch += glitchText.textContent.charAt(i);
-                }
-            }
-            glitchText.textContent = glitch;
-        }, 100); // Glitch every 100ms
     }
 
-    // "Click to Enter" button logic
-    if (enterSiteBtn) {
-        enterSiteBtn.addEventListener('click', () => {
-            // 1. Play Music
-            initAudioContext(); // Initialize audio context
+    // Handle "Click to Enter" button click
+    enterSiteBtn.addEventListener('click', () => {
+        // 1. Play Music
+        initAudioContext(); // Initialize audio context
+        musicTrack.play();
+        playPauseIcon.textContent = 'pause'; // Set play/pause button to pause
+
+        // 2. Fade out entry screen
+        entryScreen.classList.add('fade-out');
+        
+        // 3. Reveal and unblur site content
+        siteContent.classList.add('active'); // Add active class to siteContent
+
+        // Optional: Remove entry screen from DOM after transition to clean up
+        entryScreen.addEventListener('transitionend', () => {
+            entryScreen.remove();
+        }, { once: true }); 
+        
+        // Start other animations/glitches only after entering
+        startBodyGlitchCycle();
+        startTitleGlitchCycle();
+    });
+
+
+    // Play/Pause Button Logic
+    playPauseBtn.addEventListener('click', () => {
+        // Ensure this button only works after the site is fully active
+        if (!siteContent.classList.contains('active')) {
+            return; // Do nothing if site content is not active
+        }
+
+        if (musicTrack.paused) {
             musicTrack.play();
-            playPauseIcon.textContent = 'pause'; // Update icon to pause, even if hidden
-
-            // 2. Fade out entry screen and fade in site content
-            entryScreen.classList.add('fade-out');
-            
-            // Allow a brief moment for the fade-out to start before showing content
-            setTimeout(() => {
-                entryScreen.style.display = 'none'; // Completely hide entry screen
-                siteContent.classList.add('active'); // Show and unblur site content
-            }, 500); // Match this with your CSS transition duration
-        });
-    }
-
-    // Play/Pause button logic
-    if (playPauseBtn) {
-        playPauseBtn.addEventListener('click', () => {
-            if (musicTrack.paused) {
-                initAudioContext(); // Ensure context is running if paused for a long time
-                musicTrack.play();
-                playPauseIcon.textContent = 'pause';
-            } else {
-                musicTrack.pause();
-                playPauseIcon.textContent = 'play_arrow';
-            }
-        });
-    }
-
-    // Update progress bar
-    musicTrack.addEventListener('timeupdate', () => {
-        const progress = (musicTrack.currentTime / musicTrack.duration) * 100;
-        progressBarFill.style.width = `${progress}%`;
-        currentTimeDisplay.textContent = formatTime(musicTrack.currentTime);
+            playPauseIcon.textContent = 'pause'; 
+        } else {
+            musicTrack.pause();
+            playPauseIcon.textContent = 'play_arrow'; 
+        }
     });
 
-    // Display total duration when metadata is loaded
+    // Update Time and Progress Bar
     musicTrack.addEventListener('loadedmetadata', () => {
-        durationDisplay.textContent = formatTime(musicTrack.duration);
-        progressBar.max = musicTrack.duration; // Set max value for slider
+        totalTimeSpan.textContent = formatTime(musicTrack.duration);
+        progressBar.max = musicTrack.duration; 
+        musicTrack.volume = parseFloat(volumeBar.value); 
+        updateVolumeIcon(); 
     });
 
-    // Seek functionality
+    musicTrack.addEventListener('timeupdate', () => {
+        currentTimeSpan.textContent = formatTime(musicTrack.currentTime);
+        const progressPercent = (musicTrack.currentTime / musicTrack.duration) * 100;
+        progressBarFill.style.width = `${progressPercent}%`;
+        progressBar.value = musicTrack.currentTime; 
+    });
+
+    // Handle user seeking on the progress bar
     progressBar.addEventListener('input', () => {
         musicTrack.currentTime = progressBar.value;
     });
-
-    // Volume control
-    volumeBar.addEventListener('input', () => {
-        const newVolume = parseFloat(volumeBar.value);
-        if (gainNode) { // Only set gain if AudioContext is initialized
-            gainNode.gain.value = newVolume;
-        } else {
-            // Fallback for direct HTMLMediaElement volume if AudioContext not yet active
-            musicTrack.volume = newVolume; 
-        }
-        updateVolumeIcon(newVolume);
+    
+    // Reset play button icon if audio ends
+    musicTrack.addEventListener('ended', () => {
+        playPauseIcon.textContent = 'play_arrow';
     });
 
-    // Initial volume icon state
-    if (volumeBar) {
-        updateVolumeIcon(volumeBar.value);
-    }
-    
-    // Mute/Unmute functionality (optional, but good for UX)
-    if (volumeIcon) {
-        let lastVolume = volumeBar ? volumeBar.value : 1; // Store last non-zero volume
-        volumeIcon.addEventListener('click', () => {
-            if (gainNode && gainNode.gain.value > 0 || musicTrack.volume > 0) { // If currently not muted
-                lastVolume = gainNode ? gainNode.gain.value : musicTrack.volume;
-                if (gainNode) gainNode.gain.value = 0;
-                musicTrack.volume = 0; // Fallback
-                if (volumeBar) volumeBar.value = 0;
-                updateVolumeIcon(0);
-            } else { // If currently muted
-                const targetVolume = lastVolume > 0 ? lastVolume : 0.5; // Default to 0.5 if lastVolume was 0
-                if (gainNode) gainNode.gain.value = targetVolume;
-                musicTrack.volume = targetVolume; // Fallback
-                if (volumeBar) volumeBar.value = targetVolume;
-                updateVolumeIcon(targetVolume);
-            }
-        });
-    }
 
-    function updateVolumeIcon(volume) {
-        if (!volumeIcon) return;
-        if (volume == 0) {
+    // Volume Control Logic
+    function updateVolumeIcon() {
+        if (musicTrack.volume === 0 || musicTrack.muted) {
             volumeIcon.textContent = 'volume_off';
-        } else if (volume < 0.5) {
+        } else if (musicTrack.volume < 0.5) {
             volumeIcon.textContent = 'volume_down';
         } else {
             volumeIcon.textContent = 'volume_up';
         }
     }
 
+    volumeBar.addEventListener('input', () => {
+        musicTrack.volume = parseFloat(volumeBar.value);
+        musicTrack.muted = false; 
+        updateVolumeIcon();
+    });
 
-    // Format time for display (e.g., 0:00)
-    function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-    }
+    volumeIcon.addEventListener('click', () => {
+        if (musicTrack.muted) {
+            musicTrack.muted = false;
+            musicTrack.volume = parseFloat(volumeBar.value) === 0 ? 0.5 : parseFloat(volumeBar.value);
+            volumeBar.value = musicTrack.volume; 
+        } else {
+            musicTrack.muted = true;
+            volumeBar.value = 0; 
+        }
+        updateVolumeIcon();
+    });
 
-    // 3D Tilt Effect
-    if (mainContentWrapper) {
-        document.addEventListener('mousemove', (e) => {
-            const rect = mainContentWrapper.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
+    // Initialize volume on load (if script loads after HTML, which it does)
+    musicTrack.volume = parseFloat(volumeBar.value);
+    updateVolumeIcon();
 
-            const rotateX = (e.clientY - centerY) / 50; // Invert for natural feel
-            const rotateY = (centerX - e.clientX) / 50; // Invert for natural feel
 
-            mainContentWrapper.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        });
+    // Bass Visualization Loop
+    function drawBassVisualization() {
+        requestAnimationFrame(drawBassVisualization); 
 
-        // Reset tilt when mouse leaves
-        mainContentWrapper.addEventListener('mouseleave', () => {
-            mainContentWrapper.style.transform = `rotateX(0deg) rotateY(0deg)`;
-        });
-    }
+        // Only run visualization if analyser is ready AND music is playing AND site is active
+        if (!analyser || musicTrack.paused || !siteContent.classList.contains('active')) {
+            tiltBox.dataset.scale = 1.0; 
+            updateCombinedTransform(); 
+            return;
+        }
 
-    // Bass-driven scaling effect
-    const applyBassEffect = () => {
-        if (!analyser || !mainContentWrapper) return;
+        analyser.getByteFrequencyData(dataArray); 
 
-        const bufferLength = analyser.frequencyBinData.length;
-        const dataArray = new Uint8Array(bufferLength);
-        analyser.getByteFrequencyData(dataArray);
-
-        // Get average bass frequency (adjust band range as needed)
         let bassSum = 0;
-        const bassStart = 0; // Lower frequencies
-        const bassEnd = 10;  // Up to around 10-20 will capture bass well
-        for (let i = bassStart; i < bassEnd; i++) {
+        const bassBandCount = 5; 
+        
+        for (let i = 0; i < bassBandCount; i++) {
             bassSum += dataArray[i];
         }
-        const bassAverage = bassSum / (bassEnd - bassStart);
+        let averageBass = bassSum / bassBandCount;
 
-        // Normalize bassAverage to a 0-1 range based on expected max (e.g., 255 for 8-bit data)
-        const normalizedBass = bassAverage / 255; 
-
-        // Map normalized bass to a scale factor. Smallest scale (no bass) to largest (max bass)
-        // Adjust these values to control the intensity of the wobble
-        const minScale = 1;      // Base scale
-        const maxScale = 1.03;   // Max scale on strong bass hits
-        const scale = minScale + (maxScale - minScale) * normalizedBass;
+        const minScale = 1.0;
+        const maxScale = 1.03; 
+        const bassThreshold = 60; 
         
-        // Apply the scale transformation. We combine it with the existing tilt
-        // We read the current transform to preserve tilt
-        const currentTransform = mainContentWrapper.style.transform;
-        
-        // This is a simplified way. A more robust solution would parse the matrix
-        // For simple rotateX/rotateY, we can just append the scale.
-        // If your transform gets more complex, consider using a transform-origin for scale or parsing the matrix
-        mainContentWrapper.style.transform = `${currentTransform} scale(${scale})`;
-
-        requestAnimationFrame(applyBassEffect);
-    };
-
-    // Start the bass effect loop when audio is playing
-    musicTrack.addEventListener('play', () => {
-        // Ensure AudioContext is running
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
+        let dynamicScale = minScale;
+        if (averageBass > bassThreshold) {
+            dynamicScale = minScale + ((averageBass - bassThreshold) / (255 - bassThreshold)) * (maxScale - minScale);
         }
-        applyBassEffect();
-    });
+        dynamicScale = Math.min(maxScale, Math.max(minScale, dynamicScale)); 
 
-    // You might want to stop or pause the bass effect loop when audio is paused
-    musicTrack.addEventListener('pause', () => {
-        // No explicit stop needed for requestAnimationFrame, it just won't be re-requested
-        // if play() isn't called again.
-    });
+        tiltBox.dataset.scale = dynamicScale;
+        
+        updateCombinedTransform();
+    }
+    
+    // Initial call to set the combined transform for mouseleave and initial load
+    updateCombinedTransform(); 
 });
