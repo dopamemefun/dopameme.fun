@@ -372,6 +372,13 @@ body {
     border-radius: 3px;
 }
 
+#playPauseBtn {
+    visibility: hidden; /* Makes the element invisible */
+    opacity: 0;        /* Ensures it's fully transparent */
+    pointer-events: none; /* Prevents all mouse events (clicks, hovers, etc.) */
+    /* You might already have other styles for #playPauseBtn, keep them,
+       just add/override these three properties. */
+}
 
 /* Hide the native audio controls */
 audio {
