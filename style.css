@@ -80,7 +80,7 @@ body {
 }
 
 #enterSiteBtn:hover {
-    background-color: #00e6b8;
+    background-color: #00e6b8; 
     transform: scale(1.02);
     box-shadow: 0 0 30px rgba(0, 255, 204, 0.9); /* Intensify glow on hover */
 }
@@ -298,6 +298,12 @@ body {
     box-shadow: 0 0 10px rgba(0, 255, 204, 0.6); 
     transition: background-color 0.2s, transform 0.1s;
     flex-shrink: 0; /* Prevent button from shrinking */
+
+    /* NEW: Hide the play/pause button */
+    visibility: hidden; /* Makes it invisible but still takes up space */
+    opacity: 0;        /* Makes it fully transparent */
+    transition: visibility 0s 0.5s, opacity 0.5s linear; /* Hides after 0.5s, shows instantly */
+    pointer-events: none; /* Prevents interaction when hidden */
 }
 
 #playPauseBtn:hover {
