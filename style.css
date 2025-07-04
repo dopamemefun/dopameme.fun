@@ -26,7 +26,7 @@ body {
 
     /* --- UPDATED: CUSTOM CURSOR --- */
     /* Use your .ani file, and provide a fallback */
-    cursor: url('custom-cursor.ani'), auto; /* Make sure 'custom-cursor.ani' is the exact name */
+    cursor: url('custom-cursor.png'), auto; /* Make sure 'custom-cursor.ani' is the exact name */
 }
 
 /* Keep the rest of your CSS below this, like #glitchText and .header-section */
