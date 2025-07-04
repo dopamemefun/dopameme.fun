@@ -53,6 +53,8 @@ body.site-entered {
     z-index: 1000; /* Ensure it's on top of everything */
     opacity: 1; /* Start visible */
     transition: opacity 0.5s ease-out; /* Smooth fade-out effect */
+    /* FIX FOR PROBLEM 1: Ensure entry screen itself is not blurred */
+    filter: none; /* Remove any inherited blur */
 }
 
 /* Class added by JS to fade out the entry screen */
@@ -95,15 +97,22 @@ body.site-entered {
 
 /* NEW: Style for the main site content container */
 .site-content {
-    /* The main content will be automatically centered by body's flex properties */
-    /* No specific styling needed here beyond what main-content-wrapper provides,
-       as the entry screen will hide it initially. */
-    width: 100%; /* Ensure it takes available width within body padding */
-    height: 100%; /* Ensure it takes available height */
-    display: flex; /* Flex properties from body will center main-content-wrapper */
+    width: 100%;
+    height: 100%; 
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    /* FIX FOR PROBLEM 2: Initially hide site content */
+    opacity: 0; /* Start completely transparent */
+    pointer-events: none; /* Make it unclickable */
+    transition: opacity 0.5s ease-out; /* Smooth fade-in */
+}
+
+/* NEW: Class added by JS to show the site content */
+.site-content.active {
+    opacity: 1; /* Fully visible */
+    pointer-events: auto; /* Make it clickable */
 }
 
 
