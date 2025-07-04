@@ -6,18 +6,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return characters.charAt(Math.floor(Math.random() * characters.length));
     }
 
-    // --- Glitch effect for the <h1> text (Dopameme) ---
+    // --- Glitch effect for the ON-PAGE <h1> text (Dopameme) ---
     const glitchElement = document.getElementById('glitchText');
     const originalBodyText = glitchElement.textContent; // Store original body text
 
-    let bodyGlitchInterval; // To store the interval ID
-    let bodyIsGlitched = false;
+    let bodyGlitchInterval;
 
-    function applyBodyTextSubtleGlitch() {
+    function applyBodyTextReadableGlitch() {
         let glitchedText = '';
         for (let i = 0; i < originalBodyText.length; i++) {
-            // Lower chance to glitch characters for readability
-            if (Math.random() < 0.2) { // Now 20% chance per character to glitch
+            // Keep a lower chance to glitch for readability (e.g., 20%)
+            if (Math.random() < 0.2) {
                 glitchedText += getRandomChar();
             } else {
                 glitchedText += originalBodyText[i];
@@ -27,39 +26,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startBodyGlitchCycle() {
-        // Apply a quick series of subtle glitches
         let cycleCount = 0;
-        const maxCycles = 5; // How many quick glitches before pausing
+        const maxCycles = 5; // Number of quick glitches in a burst
 
         bodyGlitchInterval = setInterval(() => {
-            applyBodyTextSubtleGlitch();
+            applyBodyTextReadableGlitch();
             cycleCount++;
             if (cycleCount >= maxCycles) {
                 clearInterval(bodyGlitchInterval); // Stop quick glitches
                 glitchElement.textContent = originalBodyText; // Revert to original
-                bodyIsGlitched = false;
-                // Wait before starting the next cycle
-                setTimeout(startBodyGlitchCycle, 2000); // Wait 2 seconds before next burst
+                // Wait longer before the next burst for a "slower" feel
+                setTimeout(startBodyGlitchCycle, 3000); // Wait 3 seconds before next burst (adjust for slower/faster)
             }
-        }, 80); // Quick glitches happen every 80ms
-        bodyIsGlitched = true; // Mark as glitched
+        }, 100); // Quick glitches happen every 100ms within the burst
     }
 
-    // Initial start
+    // Initial start for on-page text
     startBodyGlitchCycle();
 
 
-    // --- Glitch effect for the Browser Tab Title ---
+    // --- Glitch effect for the BROWSER TAB TITLE ---
     const originalTitle = document.title; // Store original title from <title> tag
 
-    let titleGlitchInterval; // To store the interval ID
-    let titleIsGlitched = false;
+    let titleGlitchInterval;
 
-    function applyTitleSubtleGlitch() {
+    function applyTitleChaoticGlitch() {
         let glitchedTitle = '';
         for (let i = 0; i < originalTitle.length; i++) {
-            // Even lower chance to glitch characters for the title for better readability
-            if (Math.random() < 0.1) { // 10% chance per character to glitch
+            // HIGH chance to glitch for a chaotic, illegible effect (e.g., 80%)
+            if (Math.random() < 0.8) {
                 glitchedTitle += getRandomChar();
             } else {
                 glitchedTitle += originalTitle[i];
@@ -69,25 +64,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startTitleGlitchCycle() {
-        // Apply a quick series of subtle glitches for the title
         let cycleCount = 0;
-        const maxCycles = 3; // Fewer cycles for title
+        const maxCycles = 4; // Number of quick, chaotic glitches in a burst
 
         titleGlitchInterval = setInterval(() => {
-            applyTitleSubtleGlitch();
+            applyTitleChaoticGlitch();
             cycleCount++;
             if (cycleCount >= maxCycles) {
                 clearInterval(titleGlitchInterval); // Stop quick glitches
-                document.title = originalTitle; // Revert to original
-                titleIsGlitched = false;
+                document.title = originalTitle; // Revert to original (important for clarity between bursts)
                 // Wait before starting the next cycle
-                setTimeout(startTitleGlitchCycle, 3500); // Wait 3.5 seconds before next burst
+                setTimeout(startTitleGlitchCycle, 4000); // Wait 4 seconds before next chaotic burst
             }
-        }, 120); // Quick glitches happen every 120ms
-        titleIsGlitched = true; // Mark as glitched
+        }, 150); // Quick chaotic glitches happen every 150ms within the burst
     }
 
-    // Initial start
+    // Initial start for tab title
     startTitleGlitchCycle();
 
 });
