@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const siteContent = document.getElementById('siteContent'); // Get the new siteContent div
 
     // --- Shared Glitch Logic ---
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_+-=|;:",./?~`';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*+=|;:",./?~`';
 
     function getRandomChar() {
         return characters.charAt(Math.floor(Math.random() * characters.length));
