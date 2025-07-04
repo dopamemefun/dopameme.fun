@@ -1,41 +1,45 @@
-/* General body styles for a dark theme similar to your example */
+/* General body styles for a dark theme and centering content */
 body {
-    background-color: #1a1a1a; /* Dark background */
-    color: #e0e0e0; /* Light gray text */
-    font-family: 'Arial', sans-serif; /* Default font */
+    background-color: #1a1a1a; /* Fallback color if GIF doesn't load */
+    color: #e0e0e0; /* Light gray text color for general content */
+    font-family: 'Arial', sans-serif; /* A fallback simple font for the body */
+
+    /* These properties center the content vertically and horizontally */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
-    margin: 0;
+
+    min-height: 100vh; /* Ensures the body takes at least the full height of the viewport */
+    margin: 0; /* Removes default body margin */
+    padding: 0; /* Removes default body padding */
+
+    /* --- ADD THESE BACKGROUND GIF PROPERTIES --- */
+    /* IMPORTANT: Change 'background.gif' to your GIF's exact filename and path */
+    background-image: url('background.gif'); 
+    background-size: cover; /* Ensures the GIF covers the entire background */
+    background-position: center center; /* Centers the GIF */
+    background-repeat: no-repeat; /* Prevents the GIF from repeating */
+    background-attachment: fixed; /* Keeps the GIF fixed when scrolling (if you have scrollable content) */
 }
 
-/* Style for the glitching text */
-#glitchText {
-    /* You can choose a font that looks more 'digital' or 'glitchy' */
-    /* For example, 'Monoton', 'Press Start 2P', or 'VT323' from Google Fonts */
-    font-family: 'Press Start 2P', cursive; /* Example Google Font */
-    font-size: 3em; /* Adjust size as needed */
-    font-weight: bold;
-    color: #00ffcc; /* A bright, digital-looking color */
+/* Keep the rest of your CSS below this, like #glitchText and .header-section */
 
-    /* Optional: Add a subtle text shadow for a glow/glitch feel */
+#glitchText {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 3em;
+    font-weight: bold;
+    color: #00ffcc;
     text-shadow:
         0 0 5px #00ffcc,
         0 0 10px #00ffcc,
         0 0 15px rgba(0, 255, 204, 0.5);
 }
 
-/* General header section styling */
 .header-section {
     text-align: center;
     padding: 20px;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3); /* Subtle glow */
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
 }
-
-/* If you decide to use a Google Font, you'll need to link it in your index.html's <head> */
-/* Example for 'Press Start 2P': */
-/* <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"> */
