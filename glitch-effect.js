@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const siteContent = document.getElementById('siteContent'); // Get the new siteContent div
 
     // --- Shared Glitch Logic ---
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_+-=|;:",./?~`';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*+=|;:",./?~`';
 
     function getRandomChar() {
         return characters.charAt(Math.floor(Math.random() * characters.length));
@@ -274,7 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
         analyser.getByteFrequencyData(dataArray); 
 
         let bassSum = 0;
-        const bassBandCount = 5; 
+        // Adjust bassBandCount for more intensity (captures more low frequencies)
+        const bassBandCount = 8; // Increased from 5 to 8
         
         for (let i = 0; i < bassBandCount; i++) {
             bassSum += dataArray[i];
@@ -282,8 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let averageBass = bassSum / bassBandCount;
 
         const minScale = 1.0;
-        const maxScale = 1.03; 
-        const bassThreshold = 60; 
+        // Adjust maxScale for a more pronounced visual pump
+        const maxScale = 1.05; // Increased from 1.03 to 1.05
+        // Adjust bassThreshold for more sensitivity to bass
+        const bassThreshold = 50; // Decreased from 60 to 50
         
         let dynamicScale = minScale;
         if (averageBass > bassThreshold) {
