@@ -27,7 +27,85 @@ body {
 
     /* --- CUSTOM CURSOR --- */
     cursor: url('custom-cursor.png'), auto; /* Make sure 'custom-cursor.png' is your resized cursor */
+
+    /* NEW: Initial blur for the whole body when entry screen is active */
+    filter: blur(5px); /* Start with blur */
+    transition: filter 1s ease-out; /* Smooth transition for blur removal */
 }
+
+/* NEW: Class added by JS to remove blur when site is entered */
+body.site-entered {
+    filter: blur(0px); /* Remove blur */
+}
+
+
+/* --- NEW: Entry Screen Styling --- */
+.entry-screen {
+    position: fixed; /* Fixed position to cover the entire viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent dark overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Ensure it's on top of everything */
+    opacity: 1; /* Start visible */
+    transition: opacity 0.5s ease-out; /* Smooth fade-out effect */
+}
+
+/* Class added by JS to fade out the entry screen */
+.entry-screen.fade-out {
+    opacity: 0;
+    pointer-events: none; /* Make it unclickable after fading out */
+}
+
+/* NEW: Style for the "Click to Enter" button */
+#enterSiteBtn {
+    background-color: #00ffcc; /* Green button */
+    color: #1a1a1a; /* Dark text */
+    border: none;
+    padding: 20px 40px;
+    border-radius: 10px;
+    font-family: 'Press Start 2P', cursive; /* Retro font */
+    font-size: 1.5em;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.7); /* Strong glow */
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    display: flex; /* For icon and text alignment */
+    align-items: center;
+    gap: 10px; /* Space between icon and text */
+}
+
+#enterSiteBtn .material-icons {
+    font-size: 1.5em; /* Match button font size */
+}
+
+#enterSiteBtn:hover {
+    background-color: #00e6b8;
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.9); /* Intensify glow on hover */
+}
+
+#enterSiteBtn:active {
+    transform: scale(0.98);
+}
+
+
+/* NEW: Style for the main site content container */
+.site-content {
+    /* The main content will be automatically centered by body's flex properties */
+    /* No specific styling needed here beyond what main-content-wrapper provides,
+       as the entry screen will hide it initially. */
+    width: 100%; /* Ensure it takes available width within body padding */
+    height: 100%; /* Ensure it takes available height */
+    display: flex; /* Flex properties from body will center main-content-wrapper */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
 
 /* --- Styling for the Main Content Wrapper (the black box for tilt/bass) --- */
 .main-content-wrapper {
@@ -219,7 +297,7 @@ body {
     transform: scale(0.95); 
 }
 
-/* --- NEW: Volume Control Styling --- */
+/* --- Volume Control Styling --- */
 .volume-control {
     display: flex;
     align-items: center;
