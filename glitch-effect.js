@@ -10,57 +10,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const glitchElement = document.getElementById('glitchText');
     const originalBodyText = glitchElement.textContent; // Store original body text
 
-    function applyBodyTextContinuousGlitch() {
+    let bodyGlitchInterval; // To store the interval ID
+    let bodyIsGlitched = false;
+
+    function applyBodyTextSubtleGlitch() {
         let glitchedText = '';
         for (let i = 0; i < originalBodyText.length; i++) {
-            // High chance to glitch, making it constantly dynamic
-            if (Math.random() < 0.6) { // 60% chance for a character to glitch
+            // Lower chance to glitch characters for readability
+            if (Math.random() < 0.2) { // Now 20% chance per character to glitch
                 glitchedText += getRandomChar();
             } else {
                 glitchedText += originalBodyText[i];
             }
         }
         glitchElement.textContent = glitchedText;
-
-        // Immediately set a short timeout to either restore partially or re-glitch
-        // For a more continuous effect, we want it to constantly change,
-        // so we'll re-glitch very quickly or restore original after a short pause.
-        // Let's make it flicker and then settle briefly before the next full re-glitch cycle.
-        setTimeout(() => {
-            // A small chance to fully revert to original, or keep a partial glitch
-            if (Math.random() < 0.2) { // 20% chance to revert to original
-                glitchElement.textContent = originalBodyText;
-            }
-        }, 100); // After 100ms, consider reverting or moving to next phase
     }
 
-    // Trigger the main body text glitch cycle very frequently
-    setInterval(applyBodyTextContinuousGlitch, 150); // Glitch body text every 150 milliseconds (much faster)
+    function startBodyGlitchCycle() {
+        // Apply a quick series of subtle glitches
+        let cycleCount = 0;
+        const maxCycles = 5; // How many quick glitches before pausing
+
+        bodyGlitchInterval = setInterval(() => {
+            applyBodyTextSubtleGlitch();
+            cycleCount++;
+            if (cycleCount >= maxCycles) {
+                clearInterval(bodyGlitchInterval); // Stop quick glitches
+                glitchElement.textContent = originalBodyText; // Revert to original
+                bodyIsGlitched = false;
+                // Wait before starting the next cycle
+                setTimeout(startBodyGlitchCycle, 2000); // Wait 2 seconds before next burst
+            }
+        }, 80); // Quick glitches happen every 80ms
+        bodyIsGlitched = true; // Mark as glitched
+    }
+
+    // Initial start
+    startBodyGlitchCycle();
 
 
     // --- Glitch effect for the Browser Tab Title ---
     const originalTitle = document.title; // Store original title from <title> tag
 
-    function applyTitleContinuousGlitch() {
+    let titleGlitchInterval; // To store the interval ID
+    let titleIsGlitched = false;
+
+    function applyTitleSubtleGlitch() {
         let glitchedTitle = '';
         for (let i = 0; i < originalTitle.length; i++) {
-            // Apply a moderate chance to glitch characters for the title
-            if (Math.random() < 0.3) { // 30% chance for a character to glitch
+            // Even lower chance to glitch characters for the title for better readability
+            if (Math.random() < 0.1) { // 10% chance per character to glitch
                 glitchedTitle += getRandomChar();
             } else {
                 glitchedTitle += originalTitle[i];
             }
         }
         document.title = glitchedTitle; // Set the tab title to the glitched version
-
-        // Short timeout for the title as well, possibly reverting quickly
-        setTimeout(() => {
-             if (Math.random() < 0.4) { // 40% chance to revert to original
-                document.title = originalTitle;
-            }
-        }, 150); // Glitch lasts for 150 milliseconds in the title
     }
 
-    // Trigger the title glitch cycle more frequently than before
-    setInterval(applyTitleContinuousGlitch, 500); // Glitch title every 500 milliseconds (0.5 seconds)
+    function startTitleGlitchCycle() {
+        // Apply a quick series of subtle glitches for the title
+        let cycleCount = 0;
+        const maxCycles = 3; // Fewer cycles for title
+
+        titleGlitchInterval = setInterval(() => {
+            applyTitleSubtleGlitch();
+            cycleCount++;
+            if (cycleCount >= maxCycles) {
+                clearInterval(titleGlitchInterval); // Stop quick glitches
+                document.title = originalTitle; // Revert to original
+                titleIsGlitched = false;
+                // Wait before starting the next cycle
+                setTimeout(startTitleGlitchCycle, 3500); // Wait 3.5 seconds before next burst
+            }
+        }, 120); // Quick glitches happen every 120ms
+        titleIsGlitched = true; // Mark as glitched
+    }
+
+    // Initial start
+    startTitleGlitchCycle();
+
 });
