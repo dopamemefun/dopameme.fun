@@ -6,16 +6,17 @@ body {
     
     /* These properties center the content vertically and horizontally */
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Changed to column to stack elements vertically */
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* Adjusted as content might expand vertically */
     
     min-height: 100vh; /* Ensures the body takes at least the full height of the viewport */
     margin: 0; /* Removes default body margin */
-    padding: 0; /* Removes default body padding */
+    padding: 20px; /* Added padding to prevent content from touching edges */
+    box-sizing: border-box; /* Include padding in element's total width/height */
 
     /* --- BACKGROUND GIF PROPERTIES --- */
-    background-image: url('background.gif'); /* CHANGE THIS to your GIF's filename and path if you haven't already */
+    background-image: url('background.gif'); /* CHANGE THIS to your GIF's filename and path */
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -24,34 +25,187 @@ body {
     /* --- New for 3D Tilt Effect --- */
     perspective: 1000px; /* Defines the 3D viewing distance for children */
 
-    /* --- UPDATED: CUSTOM CURSOR --- */
-    /* Use your .ani file, and provide a fallback */
-    cursor: url('custom-cursor.png'), auto; /* Make sure 'custom-cursor.ani' is the exact name */
+    /* --- CUSTOM CURSOR --- */
+    cursor: url('custom-cursor.png'), auto; /* Make sure 'custom-cursor.png' is your resized cursor */
 }
 
-/* Keep the rest of your CSS below this, like #glitchText and .header-section */
-
+/* Style for the glitching text (Dopameme) */
 #glitchText {
     font-family: 'Press Start 2P', cursive;
     font-size: 3em;
     font-weight: bold;
     color: #00ffcc;
-
     text-shadow:
         0 0 5px #00ffcc,
         0 0 10px #00ffcc,
         0 0 15px rgba(0, 255, 204, 0.5);
 }
 
+/* Styling for the container that holds your main title and intro text */
 .header-section {
     text-align: center;
     padding: 30px 50px;
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 15px;
     box-shadow: 0 0 25px rgba(0, 255, 204, 0.5), 0 0 50px rgba(0, 255, 204, 0.2);
+    margin-bottom: 40px; /* Space between the box and the music player */
 
     transform-style: preserve-3d;
     transform: rotateX(0deg) rotateY(0deg);
     transition: transform 0.1s ease-out;
     will-change: transform;
+}
+
+
+/* --- NEW: Custom Audio Player Styling --- */
+.audio-player-container {
+    display: flex; /* Use flexbox to align album art and controls */
+    background-color: rgba(0, 0, 0, 0.8); /* Darker background for the player */
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.4); /* Glow effect for the player */
+    width: 90%; /* Adjust width as needed */
+    max-width: 600px; /* Max width for larger screens */
+    align-items: center; /* Vertically align items in the container */
+    gap: 20px; /* Space between album art and controls */
+}
+
+.player-visuals {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0; /* Prevent visuals from shrinking */
+}
+
+#albumArt {
+    width: 80px; /* Size of the album art */
+    height: 80px;
+    border-radius: 8px; /* Slightly rounded corners for album art */
+    object-fit: cover; /* Ensures image covers the area without distortion */
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); /* Subtle shadow for album art */
+}
+
+.song-info {
+    color: #e0e0e0;
+    font-size: 0.9em;
+}
+
+.song-info .song-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+    color: #00ffcc; /* Bright color for the title */
+}
+
+.song-info .song-artist {
+    color: #a0a0a0; /* Slightly muted color for artist */
+}
+
+.player-controls {
+    flex-grow: 1; /* Allows controls to take up remaining space */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.time-display {
+    font-size: 0.8em;
+    color: #a0a0a0;
+    text-align: right; /* Align time display to the right */
+}
+
+.progress-bar-container {
+    position: relative;
+    width: 100%;
+    height: 8px; /* Height of the progress bar track */
+    background-color: rgba(255, 255, 255, 0.1); /* Light gray for the track */
+    border-radius: 5px;
+    overflow: hidden; /* Ensures fill stays within bounds */
+}
+
+#progressBarFill {
+    height: 100%;
+    width: 0%; /* Will be controlled by JavaScript */
+    background-color: #00ffcc; /* Green fill color */
+    border-radius: 5px;
+    transition: width 0.1s linear; /* Smooth fill movement */
+}
+
+/* Style the actual range input (slider) for interactivity */
+#progressBar {
+    position: absolute; /* Position over the fill and container */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-appearance: none; /* Hide default slider styles for Chrome/Safari */
+    appearance: none;
+    background: transparent; /* Make the input transparent */
+    cursor: grab;
+    z-index: 2; /* Ensure it's clickable */
+}
+
+/* Styles for the slider thumb (the draggable part) */
+#progressBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px; /* Width of the thumb */
+    height: 15px; /* Height of the thumb */
+    background: #00ffcc; /* Color of the thumb */
+    border-radius: 50%; /* Make it circular */
+    cursor: grab;
+    box-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
+    margin-top: -3.5px; /* Adjust to center vertically */
+    /* This makes the thumb visible */
+    background-color: #00ffcc; /* Add to ensure visibility */
+}
+
+#progressBar::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    background: #00ffcc;
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
+}
+
+/* Styles for the slider track (the non-filled part) for Firefox */
+#progressBar::-moz-range-track {
+    background: transparent; /* Make track transparent as we use progressBarFill */
+}
+
+.playback-buttons {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    align-items: center;
+}
+
+#playPauseBtn {
+    background-color: #00ffcc; /* Green button background */
+    color: #1a1a1a; /* Dark text/icon color */
+    border: none;
+    border-radius: 50%; /* Circular button */
+    width: 40px; /* Size of the button */
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 24px; /* Size of the icon */
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.6); /* Glow effect */
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+#playPauseBtn:hover {
+    background-color: #00e6b8; /* Slightly darker green on hover */
+    transform: scale(1.05); /* Slight scale on hover */
+}
+
+#playPauseBtn:active {
+    transform: scale(0.95); /* Slight press effect on click */
+}
+
+/* Hide the native audio controls */
+audio {
+    display: none;
 }
