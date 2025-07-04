@@ -372,6 +372,22 @@ body {
     border-radius: 3px;
 }
 
+#customHeaderImage {
+    max-width: 100%; /* Ensures it fits within its parent */
+    height: auto;    /* Maintains aspect ratio */
+    display: block;  /* Removes extra space below the image */
+    margin: 20px auto; /* Centers the image and adds some vertical spacing */
+    
+    /* Apply glow/outline if your image doesn't have it built-in */
+    filter: drop-shadow(0 0 10px #00FFC0) drop-shadow(0 0 20px #00FFC0); /* Example glow */
+    /* Or a border if you prefer: */
+    /* border: 2px solid #00FFC0;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 255, 192, 0.7); */
+}
+
+/* If the image needs to be positioned absolutely or have specific dimensions
+   within its container, adjust accordingly. */
 
 /* Hide the native audio controls */
 audio {
