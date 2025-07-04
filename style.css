@@ -15,8 +15,7 @@ body {
     padding: 0; /* Removes default body padding */
 
     /* --- BACKGROUND GIF PROPERTIES --- */
-    /* IMPORTANT: Change 'background.gif' to your GIF's exact filename and path */
-    background-image: url('background.gif'); 
+    background-image: url('background.gif'); /* CHANGE THIS to your GIF's filename and path if you haven't already */
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -24,9 +23,14 @@ body {
 
     /* --- New for 3D Tilt Effect --- */
     perspective: 1000px; /* Defines the 3D viewing distance for children */
+
+    /* --- UPDATED: CUSTOM CURSOR --- */
+    /* Use your .ani file, and provide a fallback */
+    cursor: url('custom-cursor.ani'), auto; /* Make sure 'custom-cursor.ani' is the exact name */
 }
 
-/* Style for the glitching text (Dopameme) */
+/* Keep the rest of your CSS below this, like #glitchText and .header-section */
+
 #glitchText {
     font-family: 'Press Start 2P', cursive;
     font-size: 3em;
@@ -39,17 +43,15 @@ body {
         0 0 15px rgba(0, 255, 204, 0.5);
 }
 
-/* Styling for the container that holds your main title and intro text */
 .header-section {
     text-align: center;
-    padding: 30px 50px; /* Increased padding for a larger box look */
-    background-color: rgba(0, 0, 0, 0.7); /* Slightly less transparent background for better box definition */
-    border-radius: 15px; /* More rounded corners */
-    box-shadow: 0 0 25px rgba(0, 255, 204, 0.5), 0 0 50px rgba(0, 255, 204, 0.2); /* Enhanced glow effect */
+    padding: 30px 50px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.5), 0 0 50px rgba(0, 255, 204, 0.2);
 
-    /* --- New for 3D Tilt Effect --- */
-    transform-style: preserve-3d; /* Ensures child elements (like the text) also participate in 3D transforms */
-    transform: rotateX(0deg) rotateY(0deg); /* Initial state */
-    transition: transform 0.1s ease-out; /* Smooth transition for the tilt effect */
-    will-change: transform; /* Hint to the browser for performance optimization */
+    transform-style: preserve-3d;
+    transform: rotateX(0deg) rotateY(0deg);
+    transition: transform 0.1s ease-out;
+    will-change: transform;
 }
