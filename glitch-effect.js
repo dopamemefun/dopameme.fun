@@ -77,17 +77,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Tilt Effect Logic ---
-    const tiltBox = document.querySelector('.main-content-wrapper'); 
+    const tiltBox = document.querySelector('.main-content-wrapper');
     const maxTilt = 10; // Maximum tilt in degrees
 
-    tiltBox.dataset.rotateX = 0; 
+    tiltBox.dataset.rotateX = 0;
     tiltBox.dataset.rotateY = 0;
-    tiltBox.dataset.scale = 1.0; 
+    tiltBox.dataset.scale = 1.0;
 
     function updateCombinedTransform() {
         const currentRotateX = parseFloat(tiltBox.dataset.rotateX) || 0;
         const currentRotateY = parseFloat(tiltBox.dataset.rotateY) || 0;
-        const dynamicScale = parseFloat(tiltBox.dataset.scale) || 1.0; 
+        const dynamicScale = parseFloat(tiltBox.dataset.scale) || 1.0;
 
         tiltBox.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg) scale(${dynamicScale})`;
     }
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tiltBox.dataset.rotateX = rotateX;
             tiltBox.dataset.rotateY = rotateY;
-            
+
             updateCombinedTransform();
         }
     });
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (siteContent.classList.contains('active')) { // Only reset tilt if siteContent is active
             tiltBox.dataset.rotateX = 0;
             tiltBox.dataset.rotateY = 0;
-            updateCombinedTransform(); 
+            updateCombinedTransform();
         }
     });
 
@@ -129,14 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentTimeSpan = document.getElementById('currentTime');
     const totalTimeSpan = document.getElementById('totalTime');
     const playPauseIcon = playPauseBtn.querySelector('.material-icons');
-    
+
     const volumeBar = document.getElementById('volumeBar');
     const volumeIcon = document.getElementById('volumeIcon');
 
     let audioContext;
     let analyser;
     let source;
-    const dataArray = new Uint8Array(128); 
+    const dataArray = new Uint8Array(128);
 
     function formatTime(seconds) {
         const minutes = Math.floor(seconds / 60);
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             source = audioContext.createMediaElementSource(musicTrack);
             analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256; 
+            analyser.fftSize = 256;
 
             source.connect(analyser);
             analyser.connect(audioContext.destination);
@@ -176,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Optional: Remove entry screen from DOM after transition to clean up
         entryScreen.addEventListener('transitionend', () => {
             entryScreen.remove();
-        }, { once: true }); 
+        }, { once: true });
         
         // Start other animations/glitches only after entering
         startBodyGlitchCycle();
@@ -193,26 +193,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (musicTrack.paused) {
             musicTrack.play();
-            playPauseIcon.textContent = 'pause'; 
+            playPauseIcon.textContent = 'pause';
         } else {
             musicTrack.pause();
-            playPauseIcon.textContent = 'play_arrow'; 
+            playPauseIcon.textContent = 'play_arrow';
         }
     });
 
     // Update Time and Progress Bar
     musicTrack.addEventListener('loadedmetadata', () => {
-        totalTimeSpan.textContent = formatTime(musicTrack.duration);
-        progressBar.max = musicTrack.duration; 
-        musicTrack.volume = parseFloat(volumeBar.value); 
-        updateVolumeIcon(); 
+        // Check if duration is a valid number
+        if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
+            totalTimeSpan.textContent = formatTime(musicTrack.duration);
+            progressBar.max = musicTrack.duration;
+        } else {
+            totalTimeSpan.textContent = "00:00"; // Default or placeholder
+            progressBar.max = 0; // Set max to 0 if duration is invalid
+        }
+        musicTrack.volume = parseFloat(volumeBar.value);
+        updateVolumeIcon();
+    });
+
+    // Added canplaythrough for more reliable duration
+    musicTrack.addEventListener('canplaythrough', () => {
+        if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration) && musicTrack.duration > 0) {
+            totalTimeSpan.textContent = formatTime(musicTrack.duration);
+            progressBar.max = musicTrack.duration;
+        }
     });
 
     musicTrack.addEventListener('timeupdate', () => {
         currentTimeSpan.textContent = formatTime(musicTrack.currentTime);
-        const progressPercent = (musicTrack.currentTime / musicTrack.duration) * 100;
-        progressBarFill.style.width = `${progressPercent}%`;
-        progressBar.value = musicTrack.currentTime; 
+        // Only update progress bar if duration is valid to prevent calculation errors
+        if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration) && musicTrack.duration > 0) {
+            const progressPercent = (musicTrack.currentTime / musicTrack.duration) * 100;
+            progressBarFill.style.width = `${progressPercent}%`;
+            progressBar.value = musicTrack.currentTime;
+        }
     });
 
     // Handle user seeking on the progress bar
@@ -239,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     volumeBar.addEventListener('input', () => {
         musicTrack.volume = parseFloat(volumeBar.value);
-        musicTrack.muted = false; 
+        musicTrack.muted = false;
         updateVolumeIcon();
     });
 
@@ -247,10 +264,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (musicTrack.muted) {
             musicTrack.muted = false;
             musicTrack.volume = parseFloat(volumeBar.value) === 0 ? 0.5 : parseFloat(volumeBar.value);
-            volumeBar.value = musicTrack.volume; 
+            volumeBar.value = musicTrack.volume;
         } else {
             musicTrack.muted = true;
-            volumeBar.value = 0; 
+            volumeBar.value = 0;
         }
         updateVolumeIcon();
     });
@@ -262,19 +279,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Bass Visualization Loop
     function drawBassVisualization() {
-        requestAnimationFrame(drawBassVisualization); 
+        requestAnimationFrame(drawBassVisualization);
 
         // Only run visualization if analyser is ready AND music is playing AND site is active
         if (!analyser || musicTrack.paused || !siteContent.classList.contains('active')) {
-            tiltBox.dataset.scale = 1.0; 
-            updateCombinedTransform(); 
+            tiltBox.dataset.scale = 1.0;
+            updateCombinedTransform();
             return;
         }
 
-        analyser.getByteFrequencyData(dataArray); 
+        analyser.getByteFrequencyData(dataArray);
 
         let bassSum = 0;
-        const bassBandCount = 5; 
+        const bassBandCount = 5;
         
         for (let i = 0; i < bassBandCount; i++) {
             bassSum += dataArray[i];
@@ -282,14 +299,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let averageBass = bassSum / bassBandCount;
 
         const minScale = 1.0;
-        const maxScale = 1.03; 
-        const bassThreshold = 60; 
+        const maxScale = 1.03;
+        const bassThreshold = 60;
         
         let dynamicScale = minScale;
         if (averageBass > bassThreshold) {
             dynamicScale = minScale + ((averageBass - bassThreshold) / (255 - bassThreshold)) * (maxScale - minScale);
         }
-        dynamicScale = Math.min(maxScale, Math.max(minScale, dynamicScale)); 
+        dynamicScale = Math.min(maxScale, Math.max(minScale, dynamicScale));
 
         tiltBox.dataset.scale = dynamicScale;
         
@@ -297,5 +314,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Initial call to set the combined transform for mouseleave and initial load
-    updateCombinedTransform(); 
+    updateCombinedTransform();
 });
