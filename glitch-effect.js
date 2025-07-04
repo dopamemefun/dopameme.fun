@@ -79,7 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
     startTitleGlitchCycle();
 
     // --- Tilt Effect Logic ---
-    const tiltBox = document.querySelector('.header-section');
+    // UPDATED: Target the new .main-content-wrapper for tilt and bass effects
+    const tiltBox = document.querySelector('.main-content-wrapper'); 
     const maxTilt = 10; // Maximum tilt in degrees
 
     document.addEventListener('mousemove', (e) => {
@@ -94,15 +95,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const rotateX = -mouseY * maxTilt;
 
         // Apply mouse tilt (bass effect will be added as an additional transform)
-        tiltBox.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        // Store current rotation values to combine with scale later in drawBassVisualization
+        tiltBox.dataset.rotateX = rotateX;
+        tiltBox.dataset.rotateY = rotateY;
+        
+        // This will be called frequently by mousemove, so we need to ensure it combines
+        // with the scale from bass visualization without overwriting.
+        // The drawBassVisualization function handles the combination.
+        // For immediate feedback during mouse move, we can set a base transform here.
+        // It's crucial that drawBassVisualization later processes and adds scale.
+        // Simplified: The full transform will be handled in drawBassVisualization.
+        // For now, let's ensure the initial transform is set up correctly.
+        // We'll update the drawBassVisualization to properly combine stored rotations with scale.
+        updateCombinedTransform();
     });
 
     document.addEventListener('mouseleave', () => {
-        tiltBox.style.transform = 'rotateX(0deg) rotateY(0deg)'; // Reset tilt on mouse leave
+        // Reset tilt on mouse leave
+        tiltBox.dataset.rotateX = 0;
+        tiltBox.dataset.rotateY = 0;
+        updateCombinedTransform(); // Update transform to reset
     });
 
 
-    // --- NEW: Audio Player and Bass Visualization Logic ---
+    // --- Audio Player and Bass Visualization Logic ---
     const musicTrack = document.getElementById('musicTrack');
     const playPauseBtn = document.getElementById('playPauseBtn');
     const progressBar = document.getElementById('progressBar');
@@ -114,8 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioContext;
     let analyser;
     let source;
-    const bufferLength = 2048; // Number of data points for frequency analysis
-    const dataArray = new Uint8Array(bufferLength); // Array to hold frequency data
+    // Set a smaller bufferLength for more sensitive bass detection if needed
+    // const bufferLength = 2048; // Default from previous step, keeping for consistency
+    const dataArray = new Uint8Array(256); // analyser.fftSize / 2 for frequency data
 
     // Function to format time (e.g., 1:05 -> 01:05)
     function formatTime(seconds) {
@@ -131,6 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
             source = audioContext.createMediaElementSource(musicTrack);
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 256; // Smaller FFT size for faster updates and more relevant bass data
+            // dataArray should be half of fftSize
+            // dataArray = new Uint8Array(analyser.frequencyBinCount); // This would be 128
 
             source.connect(analyser);
             analyser.connect(audioContext.destination);
@@ -176,43 +195,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
+    // Global variables to store current rotation values from mousemove
+    // These will be updated by mousemove and used by drawBassVisualization
+    tiltBox.dataset.rotateX = 0; // Initialize custom data attributes
+    tiltBox.dataset.rotateY = 0;
+
+    function updateCombinedTransform() {
+        const currentRotateX = parseFloat(tiltBox.dataset.rotateX) || 0;
+        const currentRotateY = parseFloat(tiltBox.dataset.rotateY) || 0;
+        
+        let dynamicScale = parseFloat(tiltBox.dataset.scale) || 1.0; // Get scale from bass visualization
+
+        tiltBox.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg) scale(${dynamicScale})`;
+    }
+
+
     // Bass Visualization Loop
     function drawBassVisualization() {
         requestAnimationFrame(drawBassVisualization); // Loop indefinitely
 
         if (!analyser || musicTrack.paused) {
-            // Reset box scale if music is paused or analyser not ready
-            // We need to carefully manage the transform so it doesn't conflict with tilt
-            // For simplicity, we'll reset any bass-induced scale here.
-            // The tilt effect relies on the transform directly, so we can't just set it to 'none'.
-            // The tilt effect's mousemove listener will continuously update transform,
-            // so if we just set scale here, mousemove will overwrite.
-            // A better way is to combine transforms. We will do that below.
+            // If paused or analyser not ready, reset scale but keep current tilt
+            tiltBox.dataset.scale = 1.0; // Reset scale to default
+            updateCombinedTransform(); // Apply updated transform
             return;
         }
 
         analyser.getByteFrequencyData(dataArray); // Populate dataArray with frequency data
 
         // Calculate average bass (lower frequencies)
-        // Adjust these indices based on your desired 'bass' range (e.g., 0-60 Hz)
-        // analyser.fftSize = 256 means each bin is about 44100 / 2 / 256 = ~86 Hz
-        // So, indices 0-3 (0-258 Hz) could be considered bass
+        // analyser.fftSize = 256 means frequencyBinCount = 128
+        // Each bin represents approx. 44100 / 2 / 128 = ~172 Hz per bin if sampleRate is 44100
+        // If fftSize is 256, frequencyBinCount is 128.
+        // So indices 0-2 (0-344 Hz) could be a good bass range
+        // Or 0-5 for a wider low-end.
         let bassSum = 0;
-        const bassRangeEnd = Math.floor(analyser.fftSize * (60 / audioContext.sampleRate / 2)); // Up to approx 60Hz
-        // Ensure bassRangeEnd is at least 1 and within bounds
-        const actualBassEnd = Math.max(1, Math.min(dataArray.length, 5)); // Taking first 5 bins as a common bass range approximation
-
-        for (let i = 0; i < actualBassEnd; i++) {
+        // The first few bins represent the lowest frequencies
+        const bassBandCount = 5; // Consider first 5 bins for bass
+        
+        for (let i = 0; i < bassBandCount; i++) {
             bassSum += dataArray[i];
         }
-        let averageBass = bassSum / actualBassEnd;
+        let averageBass = bassSum / bassBandCount;
 
         // Map averageBass (0-255) to a scale factor (e.g., 1.0 to 1.05)
         const minScale = 1.0;
-        const maxScale = 1.05; // Max scale for the "jump" effect
-        // Normalizing bass to 0-1, then scaling to minScale-maxScale range
-        // Add a threshold so small bass doesn't always trigger a pulse
-        const bassThreshold = 50; // Only react if bass is above this level
+        const maxScale = 1.03; // Max scale for the "jump" effect (reduced for subtlety)
+        const bassThreshold = 60; // Only react if bass is above this level (adjusted slightly)
         
         let dynamicScale = minScale;
         if (averageBass > bassThreshold) {
@@ -220,25 +249,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         dynamicScale = Math.min(maxScale, Math.max(minScale, dynamicScale)); // Clamp value
 
-        // Apply combined transforms: mouse tilt + bass scale
-        // We get the current transform from the element's style.
-        // The tilt effect's mousemove listener already applies `rotateX(...) rotateY(...)`.
-        // We need to parse that out and add `scale()`.
-        // A more robust way is to store rotateX/Y in variables and combine them.
-        // For simplicity, let's make the bass effect modify the *existing* transform string.
-
-        // Get the current transform (applied by mousemove or previous bass calculation)
-        const currentTransform = tiltBox.style.transform;
+        // Store dynamic scale in a data attribute for updateCombinedTransform to use
+        tiltBox.dataset.scale = dynamicScale;
         
-        // Remove any existing scale() from the string to re-add it
-        const cleanedTransform = currentTransform.replace(/scale\([^)]*\)/g, '').trim();
-
-        // Apply the new combined transform
-        tiltBox.style.transform = `${cleanedTransform} scale(${dynamicScale})`;
-
-        // You could also apply it to glitchElement directly if you want it to jump separately
-        // glitchElement.style.transform = `scale(${dynamicScale})`;
+        // Update the combined transform (tilt + scale)
+        updateCombinedTransform();
     }
-    // No explicit call to drawBassVisualization here; it's called after initAudioContext
-    // which happens on the first play click.
+    
+    // Initial call to set the combined transform for mouseleave and initial load
+    updateCombinedTransform(); 
 });
