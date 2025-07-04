@@ -29,7 +29,7 @@ body {
     cursor: url('custom-cursor.png'), auto; /* Make sure 'custom-cursor.png' is your resized cursor */
 }
 
-/* --- NEW: Styling for the Main Content Wrapper (the black box for tilt/bass) --- */
+/* --- Styling for the Main Content Wrapper (the black box for tilt/bass) --- */
 .main-content-wrapper {
     display: flex; /* Use flexbox to stack header and audio player inside */
     flex-direction: column; /* Stack them vertically */
@@ -66,27 +66,19 @@ body {
 }
 
 /* Styling for the container that holds your main title and intro text */
-/* This now only handles text alignment, its visual box properties are on .main-content-wrapper */
 .header-section {
     text-align: center;
-    /* Removed: padding, background-color, border-radius, box-shadow, margin-bottom */
-    /* Removed: transform-style, transform, transition, will-change as they are on the wrapper */
 }
 
 
 /* --- Custom Audio Player Styling --- */
 .audio-player-container {
-    display: flex; /* Use flexbox to align album art and controls */
-    /* Removed background-color, border-radius, box-shadow, padding as it's now on the wrapper */
-    /* Instead, player-visuals and player-controls might have their own subtle backgrounds if needed */
-    
-    /* Reduced width as it's now inside a padded wrapper */
-    width: 100%; /* Take full width of the main-content-wrapper's content area */
-    max-width: 500px; /* Limit player width inside the wrapper */
-    align-items: center; /* Vertically align items in the container */
-    gap: 20px; /* Space between album art and controls */
-    /* Add a subtle background for the player if you want it to stand out inside the wrapper */
-    background-color: rgba(0, 0, 0, 0.5); /* Slightly darker than wrapper to show separation */
+    display: flex; 
+    width: 100%;
+    max-width: 500px; 
+    align-items: center; 
+    gap: 20px; 
+    background-color: rgba(0, 0, 0, 0.5); 
     padding: 15px;
     border-radius: 8px;
 }
@@ -95,15 +87,15 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
-    flex-shrink: 0; /* Prevent visuals from shrinking */
+    flex-shrink: 0; 
 }
 
 #albumArt {
-    width: 80px; /* Size of the album art */
+    width: 80px; 
     height: 80px;
-    border-radius: 8px; /* Slightly rounded corners for album art */
-    object-fit: cover; /* Ensures image covers the area without distortion */
-    box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); /* Subtle shadow for album art */
+    border-radius: 8px; 
+    object-fit: cover; 
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); 
 }
 
 .song-info {
@@ -115,15 +107,15 @@ body {
     font-weight: bold;
     font-size: 1.1em;
     margin-bottom: 5px;
-    color: #00ffcc; /* Bright color for the title */
+    color: #00ffcc; 
 }
 
 .song-info .song-artist {
-    color: #a0a0a0; /* Slightly muted color for artist */
+    color: #a0a0a0; 
 }
 
 .player-controls {
-    flex-grow: 1; /* Allows controls to take up remaining space */
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -132,53 +124,52 @@ body {
 .time-display {
     font-size: 0.8em;
     color: #a0a0a0;
-    text-align: right; /* Align time display to the right */
+    text-align: right; 
 }
 
 .progress-bar-container {
     position: relative;
     width: 100%;
-    height: 8px; /* Height of the progress bar track */
-    background-color: rgba(255, 255, 255, 0.1); /* Light gray for the track */
+    height: 8px; 
+    background-color: rgba(255, 255, 255, 0.1); 
     border-radius: 5px;
-    overflow: hidden; /* Ensures fill stays within bounds */
+    overflow: hidden; 
 }
 
 #progressBarFill {
     height: 100%;
-    width: 0%; /* Will be controlled by JavaScript */
-    background-color: #00ffcc; /* Green fill color */
+    width: 0%; 
+    background-color: #00ffcc; 
     border-radius: 5px;
-    transition: width 0.1s linear; /* Smooth fill movement */
+    transition: width 0.1s linear; 
 }
 
 /* Style the actual range input (slider) for interactivity */
 #progressBar {
-    position: absolute; /* Position over the fill and container */
+    position: absolute; 
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    -webkit-appearance: none; /* Hide default slider styles for Chrome/Safari */
+    -webkit-appearance: none; 
     appearance: none;
-    background: transparent; /* Make the input transparent */
+    background: transparent; 
     cursor: grab;
-    z-index: 2; /* Ensure it's clickable */
+    z-index: 2; 
 }
 
 /* Styles for the slider thumb (the draggable part) */
 #progressBar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 15px; /* Width of the thumb */
-    height: 15px; /* Height of the thumb */
-    background: #00ffcc; /* Color of the thumb */
-    border-radius: 50%; /* Make it circular */
+    width: 15px; 
+    height: 15px; 
+    background: #00ffcc; 
+    border-radius: 50%; 
     cursor: grab;
     box-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
-    margin-top: -3.5px; /* Adjust to center vertically */
-    /* This makes the thumb visible */
-    background-color: #00ffcc; /* Add to ensure visibility */
+    margin-top: -3.5px; 
+    background-color: #00ffcc; 
 }
 
 #progressBar::-moz-range-thumb {
@@ -192,39 +183,99 @@ body {
 
 /* Styles for the slider track (the non-filled part) for Firefox */
 #progressBar::-moz-range-track {
-    background: transparent; /* Make track transparent as we use progressBarFill */
+    background: transparent; 
 }
 
 .playback-buttons {
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
+    justify-content: flex-end; /* Align buttons and volume to the right */
     align-items: center;
+    gap: 15px; /* Space between play/pause button and volume control */
 }
 
 #playPauseBtn {
-    background-color: #00ffcc; /* Green button background */
-    color: #1a1a1a; /* Dark text/icon color */
+    background-color: #00ffcc; 
+    color: #1a1a1a; 
     border: none;
-    border-radius: 50%; /* Circular button */
-    width: 40px; /* Size of the button */
+    border-radius: 50%; 
+    width: 40px; 
     height: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    font-size: 24px; /* Size of the icon */
-    box-shadow: 0 0 10px rgba(0, 255, 204, 0.6); /* Glow effect */
+    font-size: 24px; 
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.6); 
     transition: background-color 0.2s, transform 0.1s;
+    flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 #playPauseBtn:hover {
-    background-color: #00e6b8; /* Slightly darker green on hover */
-    transform: scale(1.05); /* Slight scale on hover */
+    background-color: #00e6b8; 
+    transform: scale(1.05); 
 }
 
 #playPauseBtn:active {
-    transform: scale(0.95); /* Slight press effect on click */
+    transform: scale(0.95); 
 }
+
+/* --- NEW: Volume Control Styling --- */
+.volume-control {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between volume icon and slider */
+    width: 100px; /* Adjust width as needed for the slider */
+    flex-shrink: 0; /* Prevent volume control from shrinking */
+}
+
+#volumeIcon {
+    font-size: 20px; /* Size of the volume icon */
+    color: #00ffcc; /* Green color for the icon */
+    cursor: pointer; /* Indicate it's interactive (e.g., for mute in the future) */
+}
+
+/* Styling for the volume slider (#volumeBar) - similar to progress bar */
+#volumeBar {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%; /* Take full width of its container (.volume-control) */
+    height: 6px; /* Height of the slider track */
+    background: rgba(255, 255, 255, 0.1); /* Light gray track */
+    border-radius: 3px;
+    outline: none;
+    cursor: grab;
+    transition: background 0.2s;
+}
+
+/* Volume Slider Thumb */
+#volumeBar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px; /* Size of the thumb */
+    height: 14px;
+    background: #00ffcc; /* Green thumb */
+    border-radius: 50%; /* Circular thumb */
+    cursor: grab;
+    box-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
+    margin-top: -4px; /* Adjust to center vertically */
+    transition: background-color 0.2s;
+}
+
+#volumeBar::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #00ffcc;
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
+}
+
+/* Volume Slider Track (for Firefox) */
+#volumeBar::-moz-range-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
 
 /* Hide the native audio controls */
 audio {
