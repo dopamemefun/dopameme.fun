@@ -82,4 +82,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial start for tab title
     startTitleGlitchCycle();
 
+    // --- NEW: Tilt Effect Logic ---
+    const tiltBox = document.querySelector('.header-section');
+    const maxTilt = 10; // Maximum tilt in degrees
+
+    document.addEventListener('mousemove', (e) => {
+        // Get the center of the tiltBox
+        const rect = tiltBox.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Calculate mouse position relative to the center of the box
+        // Normalized to -1 to 1 range
+        const mouseX = (e.clientX - centerX) / (rect.width / 2);
+        const mouseY = (e.clientY - centerY) / (rect.height / 2);
+
+        // Calculate tilt angles
+        // Move cursor right, tilt right (rotateY positive)
+        // Move cursor down, tilt down (rotateX negative)
+        const rotateY = mouseX * maxTilt;
+        const rotateX = -mouseY * maxTilt; // Invert Y-axis for natural tilt
+
+        // Apply transform
+        tiltBox.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    });
+
+    // Optional: Reset tilt when mouse leaves the document (or a specific area)
+    document.addEventListener('mouseleave', () => {
+        tiltBox.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    });
 });
