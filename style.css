@@ -3,43 +3,53 @@ body {
     background-color: #1a1a1a; /* Fallback color if GIF doesn't load */
     color: #e0e0e0; /* Light gray text color for general content */
     font-family: 'Arial', sans-serif; /* A fallback simple font for the body */
-
+    
     /* These properties center the content vertically and horizontally */
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
+    
     min-height: 100vh; /* Ensures the body takes at least the full height of the viewport */
     margin: 0; /* Removes default body margin */
     padding: 0; /* Removes default body padding */
 
-    /* --- ADD THESE BACKGROUND GIF PROPERTIES --- */
+    /* --- BACKGROUND GIF PROPERTIES --- */
     /* IMPORTANT: Change 'background.gif' to your GIF's exact filename and path */
     background-image: url('background.gif'); 
-    background-size: cover; /* Ensures the GIF covers the entire background */
-    background-position: center center; /* Centers the GIF */
-    background-repeat: no-repeat; /* Prevents the GIF from repeating */
-    background-attachment: fixed; /* Keeps the GIF fixed when scrolling (if you have scrollable content) */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    /* --- New for 3D Tilt Effect --- */
+    perspective: 1000px; /* Defines the 3D viewing distance for children */
 }
 
-/* Keep the rest of your CSS below this, like #glitchText and .header-section */
-
+/* Style for the glitching text (Dopameme) */
 #glitchText {
     font-family: 'Press Start 2P', cursive;
     font-size: 3em;
     font-weight: bold;
     color: #00ffcc;
+
     text-shadow:
         0 0 5px #00ffcc,
         0 0 10px #00ffcc,
         0 0 15px rgba(0, 255, 204, 0.5);
 }
 
+/* Styling for the container that holds your main title and intro text */
 .header-section {
     text-align: center;
-    padding: 20px;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+    padding: 30px 50px; /* Increased padding for a larger box look */
+    background-color: rgba(0, 0, 0, 0.7); /* Slightly less transparent background for better box definition */
+    border-radius: 15px; /* More rounded corners */
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.5), 0 0 50px rgba(0, 255, 204, 0.2); /* Enhanced glow effect */
+
+    /* --- New for 3D Tilt Effect --- */
+    transform-style: preserve-3d; /* Ensures child elements (like the text) also participate in 3D transforms */
+    transform: rotateX(0deg) rotateY(0deg); /* Initial state */
+    transition: transform 0.1s ease-out; /* Smooth transition for the tilt effect */
+    will-change: transform; /* Hint to the browser for performance optimization */
 }
