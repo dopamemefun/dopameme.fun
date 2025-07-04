@@ -17,43 +17,50 @@
 </head>
 <body>
 
-    <div class="main-content-wrapper">
-        <div class="header-section">
-            <h1><span id="glitchText">Dopameme</span></h1>
-        </div>
+    <div id="entryScreen" class="entry-screen">
+        <button id="enterSiteBtn">
+            <span class="material-icons">play_arrow</span> Click to Enter
+        </button>
+    </div>
 
-        <div class="audio-player-container">
-            <div class="player-visuals">
-                <img id="albumArt" src="album-art.png" alt="Album Art"> 
-                <div class="song-info">
-                    <div class="song-title">SHA STACCZ - DANGER PT2</div> 
-                    <div class="song-artist">SHA STACCZ (feat. bagvisuals)</div> 
-                </div>
+    <div id="siteContent" class="site-content">
+        <div class="main-content-wrapper">
+            <div class="header-section">
+                <h1><span id="glitchText">Dopameme</span></h1>
             </div>
 
-            <div class="player-controls">
-                <div class="time-display">
-                    <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+            <div class="audio-player-container">
+                <div class="player-visuals">
+                    <img id="albumArt" src="album-art.png" alt="Album Art"> 
+                    <div class="song-info">
+                        <div class="song-title">SHA STACCZ - DANGER PT2</div> 
+                        <div class="song-artist">SHA STACCZ (feat. bagvisuals)</div> 
+                    </div>
                 </div>
-                <div class="progress-bar-container">
-                    <div id="progressBarFill" class="progress-bar-fill"></div>
-                    <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100">
-                </div>
-                <div class="playback-buttons">
-                    <audio id="musicTrack" src="music.mp3" preload="auto" loop></audio> 
-                    <button id="playPauseBtn" class="play-pause-btn">
-                        <span class="material-icons">play_arrow</span>
-                    </button>
 
-                    <div class="volume-control">
-                        <span id="volumeIcon" class="material-icons">volume_up</span>
-                        <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="0.5">
+                <div class="player-controls">
+                    <div class="time-display">
+                        <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="progressBarFill" class="progress-bar-fill"></div>
+                        <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100">
+                    </div>
+                    <div class="playback-buttons">
+                        <audio id="musicTrack" src="music.mp3" preload="auto" loop></audio> 
+                        
+                        <button id="playPauseBtn" class="play-pause-btn">
+                            <span class="material-icons">play_arrow</span>
+                        </button>
+
+                        <div class="volume-control">
+                            <span id="volumeIcon" class="material-icons">volume_up</span>
+                            <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="0.5">
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div> 
-    <script src="glitch-effect.js"></script>
+        </div> </div> <script src="glitch-effect.js"></script>
 
 </body>
 </html>
