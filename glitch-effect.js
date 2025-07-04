@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Entry Screen Elements ---
     const entryScreen = document.getElementById('entryScreen');
     const enterSiteBtn = document.getElementById('enterSiteBtn');
+    const siteContent = document.getElementById('siteContent'); // Get the new siteContent div
 
     // --- Shared Glitch Logic ---
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*_+-=|;:",./?~`';
@@ -92,26 +93,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('mousemove', (e) => {
-        const rect = tiltBox.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
+        // Only apply tilt if siteContent is active (visible)
+        if (siteContent.classList.contains('active')) {
+            const rect = tiltBox.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
 
-        const mouseX = (e.clientX - centerX) / (rect.width / 2);
-        const mouseY = (e.clientY - centerY) / (rect.height / 2);
+            const mouseX = (e.clientX - centerX) / (rect.width / 2);
+            const mouseY = (e.clientY - centerY) / (rect.height / 2);
 
-        const rotateY = mouseX * maxTilt;
-        const rotateX = -mouseY * maxTilt;
+            const rotateY = mouseX * maxTilt;
+            const rotateX = -mouseY * maxTilt;
 
-        tiltBox.dataset.rotateX = rotateX;
-        tiltBox.dataset.rotateY = rotateY;
-        
-        updateCombinedTransform();
+            tiltBox.dataset.rotateX = rotateX;
+            tiltBox.dataset.rotateY = rotateY;
+            
+            updateCombinedTransform();
+        }
     });
 
     document.addEventListener('mouseleave', () => {
-        tiltBox.dataset.rotateX = 0;
-        tiltBox.dataset.rotateY = 0;
-        updateCombinedTransform(); 
+        if (siteContent.classList.contains('active')) { // Only reset tilt if siteContent is active
+            tiltBox.dataset.rotateX = 0;
+            tiltBox.dataset.rotateY = 0;
+            updateCombinedTransform(); 
+        }
     });
 
 
@@ -154,21 +160,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // NEW: Handle "Click to Enter" button click
+    // Handle "Click to Enter" button click
     enterSiteBtn.addEventListener('click', () => {
         // 1. Play Music
         initAudioContext(); // Initialize audio context
         musicTrack.play();
         playPauseIcon.textContent = 'pause'; // Set play/pause button to pause
 
-        // 2. Fade out entry screen and remove blur
+        // 2. Fade out entry screen
         entryScreen.classList.add('fade-out');
-        document.body.classList.add('site-entered');
+        
+        // 3. Reveal and unblur site content
+        siteContent.classList.add('active'); // Add active class to siteContent
 
         // Optional: Remove entry screen from DOM after transition to clean up
         entryScreen.addEventListener('transitionend', () => {
             entryScreen.remove();
-        }, { once: true }); // Use { once: true } to remove listener after it fires once
+        }, { once: true }); 
         
         // Start other animations/glitches only after entering
         startBodyGlitchCycle();
@@ -176,10 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // Play/Pause Button Logic (modified slightly for initial state)
+    // Play/Pause Button Logic
     playPauseBtn.addEventListener('click', () => {
-        // If the site hasn't been entered yet, this button won't function for playing.
-        // It's assumed initAudioContext() and musicTrack.play() happen on enterSiteBtn click.
+        // Ensure this button only works after the site is fully active
+        if (!siteContent.classList.contains('active')) {
+            return; // Do nothing if site content is not active
+        }
+
         if (musicTrack.paused) {
             musicTrack.play();
             playPauseIcon.textContent = 'pause'; 
@@ -253,8 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawBassVisualization() {
         requestAnimationFrame(drawBassVisualization); 
 
-        // Only run visualization if analyser is ready AND music is playing
-        if (!analyser || musicTrack.paused) {
+        // Only run visualization if analyser is ready AND music is playing AND site is active
+        if (!analyser || musicTrack.paused || !siteContent.classList.contains('active')) {
             tiltBox.dataset.scale = 1.0; 
             updateCombinedTransform(); 
             return;
@@ -287,12 +298,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initial call to set the combined transform for mouseleave and initial load
     updateCombinedTransform(); 
-
-    // IMPORTANT: Remove initial calls to startBodyGlitchCycle() and startTitleGlitchCycle() from here
-    // These are now called ONLY after the user clicks "Enter Site".
-    // This prevents the glitches from running while the entry screen is visible.
-    // If you want the glitches to run BEFORE entry, move them back outside the enterSiteBtn listener.
-    // I've commented them out below, but ensure they are not duplicated if you keep them.
-    // startBodyGlitchCycle(); // This line should be removed or commented out.
-    // startTitleGlitchCycle(); // This line should be removed or commented out.
 });
