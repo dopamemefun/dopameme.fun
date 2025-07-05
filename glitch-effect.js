@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         bounceTargets.forEach(el => {
             if (el) {
-                el.style.transform = scale(${scale});
+                el.style.transform = `scale(${scale})`;
             }
         });
 
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isNaN(seconds)) return "00:00";
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
-        return ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')};
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
     elements.musicTrack.addEventListener('timeupdate', () => {
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.totalTime.textContent = formatTime(duration);
         
         if (duration) {
-            elements.progressFill.style.width = ${(current / duration) * 100}%;
+            elements.progressFill.style.width = `${(current / duration) * 100}%`;
             elements.progressBar.value = current;
         }
     });
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTilt() {
         currentX += (tiltX - currentX) * 0.07;
         currentY += (tiltY - currentY) * 0.07;
-        tiltTarget.style.transform = rotateX(${currentX}deg) rotateY(${currentY}deg);
+        tiltTarget.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
         requestAnimationFrame(updateTilt);
     }
 
