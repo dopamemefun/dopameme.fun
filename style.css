@@ -417,6 +417,22 @@ body {
     100% { background-position: -200% 0; }
 }
 
+@keyframes universal-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.bounce-active {
+  animation: universal-bounce 0.5s infinite;
+  transform-origin: center;
+  display: inline-block; /* Ensures proper transform application */
+}
+
+/* Fix for elements that need to remain block-level */
+.bounce-active.block-preserve {
+  display: block;
+}
+
 /* Hide the native audio controls */
 audio {
     display: none;
