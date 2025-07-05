@@ -110,7 +110,7 @@ musicTrack.addEventListener('canplaythrough', () => {
 });
 
 // Play/Pause button click handler
-playPauseBtn.addEventListener('click', () => {
+playPauseBtn.addEventListener('click', async () => { // Made async to await audio context
     if (isPlaying) {
         musicTrack.pause();
         playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
@@ -120,17 +120,24 @@ playPauseBtn.addEventListener('click', () => {
         }
         // Suspend the audio context when paused to save resources
         if (audioContext && audioContext.state === 'running') {
-            audioContext.suspend();
+            await audioContext.suspend(); // Await suspend for more reliability
         }
     } else {
         // Ensure audio context is initialized and resumed on play
-        initAudioAnalysis(); // Initialize or resume context
-        musicTrack.play();
-        playPauseBtn.querySelector('.material-icons').textContent = 'pause';
-        
-        // Start animation if it's not running
-        if (!animationFrameId) {
-            animateBass();
+        try {
+            await initAudioAnalysis(); // Await resolution of audio context state
+            musicTrack.play();
+            playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+            
+            // Start animation if it's not running
+            if (!animationFrameId) {
+                animateBass();
+            }
+        } catch (error) {
+            console.error("Failed to play music or resume AudioContext:", error);
+            // Optionally, revert UI to play state if playback failed
+            playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
+            isPlaying = false;
         }
     }
     isPlaying = !isPlaying;
@@ -179,28 +186,34 @@ const entryScreen = document.getElementById('entryScreen');
 const enterSiteBtn = document.getElementById('enterSiteBtn');
 const siteContent = document.getElementById('siteContent');
 
-enterSiteBtn.addEventListener('click', () => {
+enterSiteBtn.addEventListener('click', async () => { // Made async here too
     entryScreen.classList.add('fade-out');
-    entryScreen.addEventListener('transitionend', () => {
+    entryScreen.addEventListener('transitionend', async () => { // And here
         entryScreen.style.display = 'none';
         siteContent.classList.add('active');
 
         // Play music immediately after entering
-        musicTrack.play();
-        isPlaying = true;
-        playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+        try {
+            await initAudioAnalysis(); // Await before playing
+            musicTrack.play();
+            isPlaying = true;
+            playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+            titleGlitchInterval = setInterval(applyTitleGlitch, 300);
 
-        titleGlitchInterval = setInterval(applyTitleGlitch, 300);
+            // Start animation if it's not running
+            if (!animationFrameId) {
+                animateBass();
+            }
 
-        // Initialize and start the Web Audio API bass effect when music starts playing
-        initAudioAnalysis(); // Ensure context is ready
-        if (!animationFrameId) { // Prevent multiple calls to animateBass
-            animateBass();
-        }
-
-        if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
-            totalTimeSpan.textContent = formatTime(musicTrack.duration);
-            progressBar.max = musicTrack.duration;
+            if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
+                totalTimeSpan.textContent = formatTime(musicTrack.duration);
+                progressBar.max = musicTrack.duration;
+            }
+        } catch (error) {
+            console.error("Failed to play music after site entry:", error);
+            // If play fails, reset isPlaying state
+            isPlaying = false;
+            playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
         }
 
     }, { once: true });
@@ -236,7 +249,8 @@ if (mainContentWrapper) {
 }
 
 // --- Web Audio API Bass Effect ---
-function initAudioAnalysis() {
+// Made async and returns a Promise to ensure context is resumed
+async function initAudioAnalysis() {
     if (!audioContext) { // Only create AudioContext if it doesn't exist
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioContext.createAnalyser();
@@ -250,17 +264,16 @@ function initAudioAnalysis() {
     } 
     
     // Always try to resume context if it's suspended, on any user interaction
-    if (audioContext && audioContext.state === 'suspended') {
-        audioContext.resume().then(() => {
-            console.log('AudioContext resumed successfully!');
-        }).catch(e => console.error('Error resuming AudioContext:', e));
+    if (audioContext.state === 'suspended') {
+        return audioContext.resume(); // Return the promise from resume
     }
+    return Promise.resolve(); // If already running, return a resolved promise
 }
 
 
 function animateBass() {
     // Ensure analyser and dataArray are ready
-    if (!analyser || !dataArray || audioContext.state === 'suspended') {
+    if (!analyser || !dataArray || (audioContext && audioContext.state === 'suspended')) {
         // If suspended or not initialized, stop the animation.
         // This is crucial for stopping animation when paused.
         animationFrameId = null;
