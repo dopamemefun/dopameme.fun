@@ -17,6 +17,7 @@ body {
     background-attachment: fixed;
     perspective: 1000px;
     cursor: url('custom-cursor.png'), auto;
+    overflow: hidden; /* Prevent scrollbars during animations */
 }
 
 .entry-screen {
@@ -87,6 +88,7 @@ body {
     transform-style: preserve-3d;
     perspective: 1000px;
     will-change: transform;
+    overflow: hidden; /* Prevent scrollbars from tilt/bounce */
 }
 
 #siteContent.active {
@@ -112,6 +114,7 @@ body {
     will-change: transform;
     max-width: 550px;
     width: 95%;
+    overflow: hidden; /* Prevent scrollbars from tilt/bounce */
 }
 
 @keyframes glitch-anim {
