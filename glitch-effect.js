@@ -1,4 +1,4 @@
-// glitch-effect.js - WITH SIMPLIFIED IN-PLACE BOUNCE
+// glitch-effect.js - WITH UNIVERSAL IN-PLACE BOUNCE
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const elements = {
@@ -13,17 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
         volumeIcon: document.getElementById('volumeIcon'),
         mainWrapper: document.querySelector('.main-content-wrapper'),
         siteContent: document.getElementById('siteContent'),
-        songTitle: document.querySelector('.song-title'),
-        albumArt: document.querySelector('#albumArt')
+        headerImage: document.getElementById('customHeaderImage'),
+        joinBtn: document.getElementById('joinNowBtn'),
+        audioPlayer: document.querySelector('.audio-player-container')
     };
 
     // State
     const state = {
         isPlaying: false,
         lastVolume: 0.5,
-        audioContext: null,
-        analyser: null,
-        animationId: null,
         originalTitle: "Dopameme.fun",
         originalGlitchText: "Dopameme",
         duration: 0
@@ -54,29 +52,39 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchTitle, 400);
 
     // ======================
-    // AUDIO SYSTEM WITH SIMPLE BOUNCE
+    // UNIVERSAL BOUNCE SYSTEM
     // ======================
-    function initAudio() {
-        state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        state.analyser = state.audioContext.createAnalyser();
-        state.analyser.fftSize = 32;
-        const source = state.audioContext.createMediaElementSource(elements.musicTrack);
-        source.connect(state.analyser);
-        state.analyser.connect(state.audioContext.destination);
-    }
+    const bounceElements = [
+        elements.glitchText,
+        elements.headerImage,
+        elements.joinBtn,
+        elements.playPauseBtn,
+        elements.audioPlayer,
+        document.querySelector('.song-title'),
+        document.querySelector('.album-art'),
+        document.querySelector('.progress-bar-container'),
+        document.querySelector('.volume-control')
+    ];
 
     function startBounceEffect() {
-        // Add bounce class to key elements
-        elements.songTitle.classList.add('beat-bounce');
-        elements.albumArt.classList.add('beat-bounce');
-        elements.playPauseBtn.classList.add('beat-bounce');
+        bounceElements.forEach(el => {
+            if (el) {
+                el.classList.add('bounce-active');
+                // Preserve block layout where needed
+                if (getComputedStyle(el).display === 'block') {
+                    el.classList.add('block-preserve');
+                }
+            }
+        });
+        
+        // Special case for main wrapper to prevent layout issues
+        elements.mainWrapper.classList.add('bounce-active', 'block-preserve');
     }
 
     function stopBounceEffect() {
-        // Remove bounce class
-        elements.songTitle.classList.remove('beat-bounce');
-        elements.albumArt.classList.remove('beat-bounce');
-        elements.playPauseBtn.classList.remove('beat-bounce');
+        document.querySelectorAll('.bounce-active').forEach(el => {
+            el.classList.remove('bounce-active', 'block-preserve');
+        });
     }
 
     // ======================
@@ -85,8 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.playPauseBtn.addEventListener('click', async () => {
         try {
             if (elements.musicTrack.paused) {
-                if (!state.audioContext) initAudio();
-                if (state.audioContext.state === 'suspended') await state.audioContext.resume();
                 await elements.musicTrack.play();
                 state.isPlaying = true;
                 elements.playPauseBtn.textContent = 'pause';
