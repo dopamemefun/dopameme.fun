@@ -248,7 +248,7 @@ body {
     -webkit-appearance: none; 
     appearance: none;
     background: transparent; 
-    cursor: grab;
+    cursor: grab; /* Set cursor for the interactive area */
     z-index: 2; 
 }
 
@@ -256,22 +256,22 @@ body {
 #progressBar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 18px; /* ADJUSTED: Slightly reduced from 20px */
-    height: 18px; /* ADJUSTED: Slightly reduced from 20px */
+    width: 18px; /* Adjusted to 18px */
+    height: 18px; /* Adjusted to 18px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%; 
-    cursor: grab;
+    cursor: grab; /* Explicitly set cursor for the thumb */
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5); /* Pepe Green glow */
-    margin-top: -5px; /* ADJUSTED: (8px track / 2) - (18px thumb / 2) = 4 - 9 = -5px */
+    margin-top: -5px; /* Adjusted: (8px track / 2) - (18px thumb / 2) = 4 - 9 = -5px */
     background-color: #78B159; /* Pepe Green */
 }
 
 #progressBar::-moz-range-thumb {
-    width: 18px; /* ADJUSTED: Slightly reduced from 20px */
-    height: 18px; /* ADJUSTED: Slightly reduced from 20px */
+    width: 18px; /* Adjusted to 18px */
+    height: 18px; /* Adjusted to 18px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%;
-    cursor: grab;
+    cursor: grab; /* Explicitly set cursor for the thumb */
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5); /* Pepe Green glow */
 }
 
@@ -343,7 +343,7 @@ body {
     background: rgba(255, 255, 255, 0.1); /* Light gray track */
     border-radius: 3px;
     outline: none;
-    cursor: grab;
+    cursor: grab; /* Set cursor for the interactive area */
     transition: background 0.2s;
 }
 
@@ -351,22 +351,22 @@ body {
 #volumeBar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 16px; /* ADJUSTED: Reduced from 20px */
-    height: 16px; /* ADJUSTED: Reduced from 20px */
+    width: 16px; /* Adjusted to 16px */
+    height: 16px; /* Adjusted to 16px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%; 
-    cursor: grab;
+    cursor: grab; /* Explicitly set cursor for the thumb */
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5); /* Pepe Green glow */
-    margin-top: -5px; /* ADJUSTED: (6px track / 2) - (16px thumb / 2) = 3 - 8 = -5px */
+    margin-top: -5px; /* Adjusted: (6px track / 2) - (16px thumb / 2) = 3 - 8 = -5px */
     transition: background-color 0.2s;
 }
 
 #volumeBar::-moz-range-thumb {
-    width: 16px; /* ADJUSTED: Reduced from 20px */
-    height: 16px; /* ADJUSTED: Reduced from 20px */
+    width: 16px; /* Adjusted to 16px */
+    height: 16px; /* Adjusted to 16px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%;
-    cursor: grab;
+    cursor: grab; /* Explicitly set cursor for the thumb */
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5); /* Pepe Green glow */
 }
 
