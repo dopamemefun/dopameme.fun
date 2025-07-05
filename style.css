@@ -450,7 +450,27 @@ body {
 .bounce-active.block-preserve {
   display: block;
 }
+/* Add these specific styles for the sliders */
+.progress-bar-container.bounce-active,
+.volume-control.bounce-active {
+  animation: none !important; /* Disable scale animation */
+  transform: none !important;
+}
 
+.progress-bar-fill.bounce-active {
+  transform-origin: left center;
+  animation: bounce-horizontal 0.5s infinite;
+}
+
+.volume-bar.bounce-active {
+  transform-origin: left center;
+  animation: bounce-horizontal 0.5s infinite;
+}
+
+@keyframes bounce-horizontal {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(1.02); }
+}
 /* Hide the native audio controls */
 audio {
     display: none;
