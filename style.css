@@ -107,7 +107,7 @@ body {
     box-shadow: 0 0 25px rgba(120, 177, 89, 0.5), 0 0 50px rgba(120, 177, 89, 0.2);
     padding: 20px 30px;
     transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(0deg);
+    transform: rotateX(0deg) rotateY(0deg) scale(0.9); /* scaled down to 90% */
     transition: transform 0.15s ease-out;
     will-change: transform;
     max-width: 550px;
