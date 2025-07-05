@@ -395,9 +395,20 @@ body {
     border-radius: 3px;
 }
 
-.main-content-wrapper, .audio-player-container {
-    transition: transform 0.1s ease-out;
-    will-change: transform;
+/* Add this to your existing CSS */
+@keyframes beat-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.beat-bounce {
+  animation: beat-bounce 0.5s infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.song-title {
+  display: inline-block; /* Required for transform to work properly */
 }
 
 
