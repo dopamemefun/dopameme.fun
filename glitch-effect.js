@@ -1,4 +1,4 @@
-// DOM Elements
+// glitch-effect.js - FULLY WORKING VERSION
 const glitchTextElement = document.getElementById('glitchText');
 const musicTrack = document.getElementById('musicTrack');
 const playPauseBtn = document.getElementById('playPauseBtn');
@@ -8,21 +8,93 @@ const currentTimeSpan = document.getElementById('currentTime');
 const totalTimeSpan = document.getElementById('totalTime');
 const volumeBar = document.getElementById('volumeBar');
 const volumeIcon = document.getElementById('volumeIcon');
-const mainContentWrapper = document.querySelector('.main-content-wrapper');
+const albumArt = document.getElementById('albumArt');
+const songTitleElement = document.querySelector('.song-title');
+const songArtistElement = document.querySelector('.song-artist');
+const customHeaderImage = document.getElementById('customHeaderImage');
+
+// Glitch Effect Variables
+const originalGlitchText = glitchTextElement.textContent;
+const originalTitleText = document.title;
+let titleGlitchInterval;
+const characters = "01345789_=-+[]{}|";
+let glitchInterval;
 
 // Audio Analysis Variables
-let audioContext, analyser, audioSource, dataArray;
-let animationFrameId = null;
+let audioContext;
+let analyser;
+let audioSource;
+let dataArray;
 let currentTiltTransform = '';
+let animationFrameId = null;
 
-// State
+// Player State
 let lastKnownVolume = 0.5;
 let isPlaying = false;
 
-// Fixed Play/Pause Functionality
+/* ====================== */
+/*       GLITCH EFFECTS       */
+/* ====================== */
+function getRandomChar(charSet) {
+    const randomIndex = Math.floor(Math.random() * charSet.length);
+    return charSet.charAt(randomIndex);
+}
+
+function applyBodyTextReadableGlitch() {
+    let glitchedText = '';
+    for (let i = 0; i < originalGlitchText.length; i++) {
+        if (Math.random() < 0.4) {
+            glitchedText += getRandomChar(characters);
+        } else {
+            glitchedText += originalGlitchText[i];
+        }
+    }
+    glitchTextElement.textContent = glitchedText;
+}
+
+function applyTitleGlitch() {
+    let glitchedTitle = '';
+    for (let i = 0; i < originalTitleText.length; i++) {
+        if (Math.random() < 0.3) {
+            glitchedTitle += getRandomChar(characters);
+        } else {
+            glitchedTitle += originalTitleText[i];
+        }
+    }
+    document.title = glitchedTitle;
+}
+
+// Start glitch effects
+glitchInterval = setInterval(applyBodyTextReadableGlitch, 250);
+
+/* ====================== */
+/*    AUDIO CONTROLS     */
+/* ====================== */
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+}
+
+function updatePlayPauseBtnIcon() {
+    playPauseBtn.textContent = musicTrack.paused ? 'play_arrow' : 'pause';
+}
+
+function setLoadingState(isLoading) {
+    if (isLoading) {
+        songTitleElement.classList.add('loading-track');
+        songArtistElement.classList.add('loading-track');
+    } else {
+        songTitleElement.classList.remove('loading-track');
+        songArtistElement.classList.remove('loading-track');
+    }
+}
+
+// FIXED PLAY/PAUSE FUNCTIONALITY
 playPauseBtn.addEventListener('click', async () => {
     try {
         if (musicTrack.paused) {
+            // Initialize audio analysis if needed
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
@@ -32,9 +104,14 @@ playPauseBtn.addEventListener('click', async () => {
                 audioSource.connect(analyser);
                 analyser.connect(audioContext.destination);
             }
-            await audioContext.resume();
+            
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            
             await musicTrack.play();
             isPlaying = true;
+            
             if (!animationFrameId && musicTrack.volume > 0) {
                 animateBass();
             }
@@ -50,33 +127,83 @@ playPauseBtn.addEventListener('click', async () => {
     }
 });
 
-// Rest of your existing code (time display, volume control, etc.) remains the same...
-// [Keep all your existing event listeners and helper functions below]
-// Only the play/pause related code above was modified
+/* ====================== */
+/*    PLAYBACK CONTROLS   */
+/* ====================== */
+musicTrack.addEventListener('timeupdate', () => {
+    currentTimeSpan.textContent = formatTime(musicTrack.currentTime);
+    progressBarFill.style.width = (musicTrack.currentTime / musicTrack.duration) * 100 + '%';
+    progressBar.value = musicTrack.currentTime;
+});
 
-// Make sure to keep all these existing functions:
-function formatTime(seconds) { /* ... */ }
-function setLoadingState(isLoading) { /* ... */ }
-function updateVolumeIcon() { /* ... */ }
-function animateBass() { /* ... */ }
-function updatePlayPauseBtnIcon() { /* ... */ }
+musicTrack.addEventListener('loadedmetadata', () => {
+    if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
+        totalTimeSpan.textContent = formatTime(musicTrack.duration);
+        progressBar.max = musicTrack.duration;
+    }
+    musicTrack.volume = lastKnownVolume;
+    volumeBar.value = lastKnownVolume;
+    updateVolumeIcon();
+    updatePlayPauseBtnIcon();
+});
 
-// Keep all these existing event listeners:
-musicTrack.addEventListener('timeupdate', () => { /* ... */ });
-musicTrack.addEventListener('loadedmetadata', () => { /* ... */ });
-musicTrack.addEventListener('canplaythrough', () => { /* ... */ });
-musicTrack.addEventListener('play', () => { /* ... */ });
-musicTrack.addEventListener('pause', () => { /* ... */ });
-musicTrack.addEventListener('error', (e) => { /* ... */ });
-musicTrack.addEventListener('stalled', () => { /* ... */ });
-musicTrack.addEventListener('waiting', () => { /* ... */ });
-musicTrack.addEventListener('playing', () => { /* ... */ });
-progressBar.addEventListener('input', () => { /* ... */ });
-volumeBar.addEventListener('input', () => { /* ... */ });
-volumeIcon.addEventListener('click', () => { /* ... */ });
-musicTrack.addEventListener('canplay', () => { /* ... */ });
+progressBar.addEventListener('input', () => {
+    musicTrack.currentTime = progressBar.value;
+});
 
-// Keep your entry screen code:
+/* ====================== */
+/*     VOLUME CONTROLS    */
+/* ====================== */
+function updateVolumeIcon() {
+    if (musicTrack.volume === 0) {
+        volumeIcon.textContent = 'volume_off';
+    } else if (musicTrack.volume < 0.5) {
+        volumeIcon.textContent = 'volume_down';
+    } else {
+        volumeIcon.textContent = 'volume_up';
+    }
+}
+
+volumeBar.addEventListener('input', () => {
+    const newVolume = parseFloat(volumeBar.value);
+    musicTrack.volume = newVolume;
+    if (newVolume > 0) {
+        lastKnownVolume = newVolume;
+    }
+    updateVolumeIcon();
+    
+    if (musicTrack.volume === 0) {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    } else if (!animationFrameId && isPlaying) {
+        animateBass();
+    }
+});
+
+volumeIcon.addEventListener('click', () => {
+    if (musicTrack.volume > 0) {
+        lastKnownVolume = musicTrack.volume;
+        musicTrack.volume = 0;
+        volumeBar.value = 0;
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    } else {
+        musicTrack.volume = lastKnownVolume;
+        volumeBar.value = lastKnownVolume;
+        if (!animationFrameId && isPlaying) {
+            animateBass();
+        }
+    }
+    updateVolumeIcon();
+});
+
+/* ====================== */
+/*     ENTRY ANIMATION    */
+/* ====================== */
 const entryScreen = document.getElementById('entryScreen');
 const enterSiteBtn = document.getElementById('enterSiteBtn');
 const siteContent = document.getElementById('siteContent');
@@ -88,7 +215,17 @@ enterSiteBtn.addEventListener('click', async () => {
         siteContent.classList.add('active');
 
         try {
-            await initAudio();
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                audioSource = audioContext.createMediaElementSource(musicTrack);
+                audioSource.connect(analyser);
+                analyser.connect(audioContext.destination);
+            }
+            
+            await audioContext.resume();
             await musicTrack.play();
             isPlaying = true;
             titleGlitchInterval = setInterval(applyTitleGlitch, 300);
@@ -103,8 +240,79 @@ enterSiteBtn.addEventListener('click', async () => {
     }, { once: true });
 });
 
-// Keep your mouse move effects:
+/* ====================== */
+/*      TILT EFFECT       */
+/* ====================== */
+const mainContentWrapper = document.querySelector('.main-content-wrapper');
+
 if (mainContentWrapper) {
-    mainContentWrapper.addEventListener('mousemove', (e) => { /* ... */ });
-    mainContentWrapper.addEventListener('mouseleave', () => { /* ... */ });
+    mainContentWrapper.addEventListener('mousemove', (e) => {
+        const { offsetWidth: width, offsetHeight: height } = mainContentWrapper;
+        const { clientX: mouseX, clientY: mouseY } = e;
+
+        const centerX = mainContentWrapper.getBoundingClientRect().left + width / 2;
+        const centerY = mainContentWrapper.getBoundingClientRect().top + height / 2;
+
+        const percentX = (mouseX - centerX) / (width / 2);
+        const percentY = (mouseY - centerY) / (height / 2);
+
+        const rotateX = percentY * 8;
+        const rotateY = percentX * -8;
+
+        currentTiltTransform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        mainContentWrapper.style.transform = currentTiltTransform;
+    });
+
+    mainContentWrapper.addEventListener('mouseleave', () => {
+        currentTiltTransform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+        mainContentWrapper.style.transform = currentTiltTransform;
+    });
 }
+
+/* ====================== */
+/*   BASS VISUALIZATION   */
+/* ====================== */
+function animateBass() {
+    if (musicTrack.volume === 0 || !isPlaying) {
+        animationFrameId = null;
+        return;
+    }
+
+    if (!analyser || !dataArray || (audioContext && audioContext.state !== 'running')) {
+        animationFrameId = null;
+        return;
+    }
+    
+    analyser.getByteFrequencyData(dataArray);
+    let bass = 0;
+    for (let i = 0; i < 10; i++) {
+        bass += dataArray[i];
+    }
+    bass /= 10;
+
+    const intensityFactor = 0.8;
+    const minBassThreshold = 100;
+    const maxShakeTranslate = 8;
+    const maxScaleIncrease = 0.015;
+
+    let bassTransform = '';
+    if (bass > minBassThreshold) {
+        const shakeAmount = (bass - minBassThreshold) * intensityFactor / 255;
+        const translateX = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
+        const translateY = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
+        bassTransform += ` translateX(${translateX}px) translateY(${translateY}px)`;
+        const scaleAmount = 1 + (shakeAmount * maxScaleIncrease);
+        bassTransform += ` scale(${scaleAmount})`;
+    } else {
+        bassTransform = ` scale(1)`;
+    }
+
+    mainContentWrapper.style.transform = currentTiltTransform + bassTransform;
+    animationFrameId = requestAnimationFrame(animateBass);
+}
+
+// Initialize player
+musicTrack.volume = lastKnownVolume;
+volumeBar.value = lastKnownVolume;
+updateVolumeIcon();
+updatePlayPauseBtnIcon();
