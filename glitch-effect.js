@@ -23,7 +23,13 @@ let titleGlitchInterval;
 const characters = "01345789_=-+[]{}|";
 let glitchInterval;
 
+// NEW CHANGE: Re-enabled Web Audio API global variables
+let audioContext;
+let analyser;
+let audioSource;
+let dataArray;
 let currentTiltTransform = '';
+let animationFrameId = null;
 
 function getRandomChar(charSet) {
     const randomIndex = Math.floor(Math.random() * charSet.length);
@@ -71,7 +77,7 @@ musicTrack.addEventListener('timeupdate', () => {
 });
 
 musicTrack.addEventListener('loadedmetadata', () => {
-    console.log("Audio Loaded Metadata. Duration:", musicTrack.duration); // NEW LOG
+    console.log("Audio Loaded Metadata. Duration:", musicTrack.duration);
     if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
         totalTimeSpan.textContent = formatTime(musicTrack.duration);
         progressBar.max = musicTrack.duration;
@@ -84,14 +90,13 @@ musicTrack.addEventListener('loadedmetadata', () => {
 });
 
 musicTrack.addEventListener('canplaythrough', () => {
-    console.log("Audio can play through."); // NEW LOG
+    console.log("Audio can play through.");
     if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration) && musicTrack.duration > 0) {
         totalTimeSpan.textContent = formatTime(musicTrack.duration);
         progressBar.max = musicTrack.duration;
     }
 });
 
-// NEW LOGS FOR PLAY/PAUSE EVENTS
 musicTrack.addEventListener('play', () => {
     console.log("Audio 'play' event fired. musicTrack.paused:", musicTrack.paused);
 });
@@ -101,27 +106,50 @@ musicTrack.addEventListener('pause', () => {
 });
 
 musicTrack.addEventListener('error', (e) => {
-    console.error("Audio error event:", e.target.error.code, e.target.error.message); // CRITICAL NEW LOG
+    console.error("Audio error event:", e.target.error.code, e.target.error.message);
 });
 
-// Play/Pause button click handler - SIMPLIFIED FOR DEBUGGING
-playPauseBtn.addEventListener('click', () => {
+// Play/Pause button click handler - REVISED FOR AGGRESSIVE STOP/START
+playPauseBtn.addEventListener('click', async () => { // Made async again
     if (isPlaying) {
-        console.log("Button clicked: isPlaying is TRUE. Attempting to PAUSE musicTrack.");
-        musicTrack.pause();
+        console.log("Button clicked: isPlaying is TRUE. Attempting aggressive PAUSE.");
+        musicTrack.pause(); // Still call pause() on HTMLMediaElement
         playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+        // NEW CHANGE: Aggressively disconnect audio source to stop sound
+        if (audioSource) {
+            audioSource.disconnect(analyser); // Disconnect from analyser
+            analyser.disconnect(audioContext.destination); // Disconnect analyser from speakers
+            console.log("Web Audio nodes disconnected.");
+        }
+        if (audioContext && audioContext.state === 'running') {
+            await audioContext.suspend(); // Attempt to suspend context
+            console.log("AudioContext suspended.");
+        }
     } else {
-        console.log("Button clicked: isPlaying is FALSE. Attempting to PLAY musicTrack.");
-        musicTrack.play()
-            .then(() => {
-                console.log("musicTrack.play() Promise RESOLVED.");
-            })
-            .catch(e => {
-                console.error("musicTrack.play() Promise REJECTED:", e);
-                playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
-                isPlaying = false;
-            });
-        playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+        console.log("Button clicked: isPlaying is FALSE. Attempting aggressive PLAY.");
+        try {
+            await initAudioAnalysis(); // Ensure context is running and source is ready
+            // NEW CHANGE: If source was disconnected, re-connect it
+            if (audioSource && audioContext.state === 'running') {
+                audioSource.connect(analyser);
+                analyser.connect(audioContext.destination);
+                console.log("Web Audio nodes reconnected.");
+            }
+            musicTrack.play(); // Call play() on HTMLMediaElement
+            playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+            if (!animationFrameId) {
+                animateBass();
+            }
+            console.log("musicTrack.play() Promise RESOLVED.");
+        } catch (e) {
+            console.error("musicTrack.play() Promise REJECTED:", e);
+            playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
+            isPlaying = false;
+        }
     }
     isPlaying = !isPlaying;
     console.log("isPlaying toggled to:", isPlaying);
@@ -163,30 +191,34 @@ const entryScreen = document.getElementById('entryScreen');
 const enterSiteBtn = document.getElementById('enterSiteBtn');
 const siteContent = document.getElementById('siteContent');
 
-// Entry button click handler - SIMPLIFIED FOR DEBUGGING
-enterSiteBtn.addEventListener('click', () => {
+// Entry button click handler - REVISED FOR AGGRESSIVE START
+enterSiteBtn.addEventListener('click', async () => { // Made async again
     entryScreen.classList.add('fade-out');
-    entryScreen.addEventListener('transitionend', () => {
+    entryScreen.addEventListener('transitionend', async () => { // And here
         entryScreen.style.display = 'none';
         siteContent.classList.add('active');
 
-        musicTrack.play()
-            .then(() => {
-                console.log("Initial musicTrack.play() Promise RESOLVED after entry."); // NEW LOG
-                isPlaying = true;
-                playPauseBtn.querySelector('.material-icons').textContent = 'pause';
-                titleGlitchInterval = setInterval(applyTitleGlitch, 300);
+        try {
+            await initAudioAnalysis(); // Initialize and ensure context is running
+            musicTrack.play();
+            isPlaying = true;
+            playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+            titleGlitchInterval = setInterval(applyTitleGlitch, 300);
 
-                if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
-                    totalTimeSpan.textContent = formatTime(musicTrack.duration);
-                    progressBar.max = musicTrack.duration;
-                }
-            })
-            .catch(error => {
-                console.error("Initial musicTrack.play() Promise REJECTED after entry:", error); // NEW LOG
-                isPlaying = false;
-                playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
-            });
+            if (!animationFrameId) {
+                animateBass();
+            }
+
+            if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
+                totalTimeSpan.textContent = formatTime(musicTrack.duration);
+                progressBar.max = musicTrack.duration;
+            }
+            console.log("Initial musicTrack.play() Promise RESOLVED after entry.");
+        } catch (error) {
+            console.error("Initial musicTrack.play() Promise REJECTED after entry:", error);
+            isPlaying = false;
+            playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
+        }
 
     }, { once: true });
 });
@@ -217,8 +249,62 @@ if (mainContentWrapper) {
     });
 }
 
-// COMMENTED OUT FOR DEBUGGING: Entire Web Audio API Section (STILL COMMENTED OUT)
-/*
-async function initAudioAnalysis() { ... }
-function animateBass() { ... }
-*/
+// NEW CHANGE: Re-enabled Web Audio API Section
+async function initAudioAnalysis() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        audioSource = audioContext.createMediaElementSource(musicTrack);
+        // NEW CHANGE: Only connect here, not in animateBass or elsewhere
+        audioSource.connect(analyser);
+        analyser.connect(audioContext.destination);
+    } 
+    
+    if (audioContext.state === 'suspended') {
+        console.log("AudioContext state was suspended, resuming..."); // NEW LOG
+        return audioContext.resume();
+    }
+    console.log("AudioContext state is running or pending."); // NEW LOG
+    return Promise.resolve();
+}
+
+function animateBass() {
+    if (!analyser || !dataArray || (audioContext && audioContext.state !== 'running')) { // Changed check
+        animationFrameId = null;
+        console.log("Stopping bass animation."); // NEW LOG
+        return;
+    }
+    
+    analyser.getByteFrequencyData(dataArray);
+    let bass = 0;
+    for (let i = 0; i < 10; i++) { 
+        bass += dataArray[i];
+    }
+    bass /= 10;
+
+    const intensityFactor = 0.8;
+    const minBassThreshold = 100;
+    const maxShakeTranslate = 8;
+    const maxScaleIncrease = 0.015;
+
+    let bassTransform = '';
+    if (bass > minBassThreshold) {
+        const shakeAmount = (bass - minBassThreshold) * intensityFactor / 255;
+
+        const translateX = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
+        const translateY = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
+        bassTransform += ` translateX(${translateX}px) translateY(${translateY}px)`;
+
+        const scaleAmount = 1 + (shakeAmount * maxScaleIncrease);
+        bassTransform += ` scale(${scaleAmount})`;
+    } else {
+        bassTransform = ` scale(1)`;
+    }
+
+    mainContentWrapper.style.transform = currentTiltTransform + bassTransform;
+
+    animationFrameId = requestAnimationFrame(animateBass);
+}
