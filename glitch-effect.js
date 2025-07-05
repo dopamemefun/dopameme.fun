@@ -30,7 +30,7 @@ let glitchInterval; // To hold the interval ID for clearing
 // NEW: Global variables for Web Audio API
 let audioContext;
 let analyser;
-let audioSource;
+let audioSource; // Declared globally
 let dataArray;
 let currentTiltTransform = ''; // To store the tilt transform and combine with bass shake
 let animationFrameId = null; // Stores the ID for requestAnimationFrame for bass effect
@@ -114,17 +114,17 @@ playPauseBtn.addEventListener('click', () => {
     if (isPlaying) {
         musicTrack.pause();
         playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
-        if (animationFrameId) { // Check if animation is running
-            cancelAnimationFrame(animationFrameId); // Stop the bass effect animation loop
+        if (animationFrameId) { // If animation is running, stop it
+            cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
-    } else {
-        // Ensure audio context is resumed or started on play
-        // Call initAudioAnalysis before trying to play to ensure context is ready
-        initAudioAnalysis(); 
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
+        // Suspend the audio context when paused to save resources
+        if (audioContext && audioContext.state === 'running') {
+            audioContext.suspend();
         }
+    } else {
+        // Ensure audio context is initialized and resumed on play
+        initAudioAnalysis(); // Initialize or resume context
         musicTrack.play();
         playPauseBtn.querySelector('.material-icons').textContent = 'pause';
         
@@ -185,6 +185,7 @@ enterSiteBtn.addEventListener('click', () => {
         entryScreen.style.display = 'none';
         siteContent.classList.add('active');
 
+        // Play music immediately after entering
         musicTrack.play();
         isPlaying = true;
         playPauseBtn.querySelector('.material-icons').textContent = 'pause';
@@ -192,9 +193,8 @@ enterSiteBtn.addEventListener('click', () => {
         titleGlitchInterval = setInterval(applyTitleGlitch, 300);
 
         // Initialize and start the Web Audio API bass effect when music starts playing
-        // Call initAudioAnalysis and then animateBass explicitly here
-        initAudioAnalysis(); 
-        if (!animationFrameId) { // Ensure it's not already running
+        initAudioAnalysis(); // Ensure context is ready
+        if (!animationFrameId) { // Prevent multiple calls to animateBass
             animateBass();
         }
 
@@ -237,44 +237,32 @@ if (mainContentWrapper) {
 
 // --- Web Audio API Bass Effect ---
 function initAudioAnalysis() {
-    if (!audioContext || audioContext.state === 'closed') { // Initialize or reinitialize if context is closed
+    if (!audioContext) { // Only create AudioContext if it doesn't exist
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinBin);
+        dataArray = new Uint8Array(analyser.frequencyBinCount); // Correct property name
 
-        // Connect audioSource if it exists, otherwise create it
-        if (!audioSource) {
-            audioSource = audioContext.createMediaElementSource(musicTrack);
-            audioSource.connect(analyser);
-            analyser.connect(audioContext.destination);
-        } else {
-             // If audioSource already exists, just reconnect it in case it got disconnected
-             audioSource.connect(analyser);
-             analyser.connect(audioContext.destination);
-        }
-        
-        // Resume context if it's suspended immediately after creation if needed
-        if (audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
-
-        // Start the animation loop only once after context is set up
-        if (!animationFrameId) { // Prevent multiple requests
-            animateBass();
-        }
-    } else if (audioContext.state === 'suspended') {
-        audioContext.resume();
-        if (!animationFrameId) {
-            animateBass();
-        }
+        // Create audioSource only once
+        audioSource = audioContext.createMediaElementSource(musicTrack);
+        audioSource.connect(analyser);
+        analyser.connect(audioContext.destination);
+    } 
+    
+    // Always try to resume context if it's suspended, on any user interaction
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().then(() => {
+            console.log('AudioContext resumed successfully!');
+        }).catch(e => console.error('Error resuming AudioContext:', e));
     }
 }
 
+
 function animateBass() {
-    if (!analyser || !dataArray) {
-        // If analyser or dataArray aren't initialized, stop the animation loop
-        console.warn("Audio analysis not initialized. Stopping bass animation.");
+    // Ensure analyser and dataArray are ready
+    if (!analyser || !dataArray || audioContext.state === 'suspended') {
+        // If suspended or not initialized, stop the animation.
+        // This is crucial for stopping animation when paused.
         animationFrameId = null;
         return;
     }
@@ -282,10 +270,11 @@ function animateBass() {
     analyser.getByteFrequencyData(dataArray);
     let bass = 0;
     // Consider slightly more bass bins if your music has deep bass notes
-    for (let i = 0; i < 8; i++) { // Increased from 5 to 8 for potentially broader bass detection
+    // Using 10 bins for more prominent bass detection
+    for (let i = 0; i < 10; i++) { 
         bass += dataArray[i];
     }
-    bass /= 8; // Adjust divisor based on new loop limit
+    bass /= 10; // Adjust divisor based on new loop limit
 
     const intensityFactor = 0.8;
     const minBassThreshold = 100;
@@ -303,7 +292,7 @@ function animateBass() {
         const scaleAmount = 1 + (shakeAmount * maxScaleIncrease);
         bassTransform += ` scale(${scaleAmount})`;
     } else {
-        bassTransform = ` scale(1)`;
+        bassTransform = ` scale(1)`; // Reset scale when bass is below threshold
     }
 
     // Combine current tilt transform with the bass transform
