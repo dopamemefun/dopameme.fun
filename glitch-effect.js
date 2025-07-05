@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchTitle, 400);
 
     let audioCtx, sourceNode, analyser, dataArray;
+    let bounceAnimationId = null;
 
     function initAudioAnalyzer() {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -61,8 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sourceNode.connect(analyser);
         analyser.connect(audioCtx.destination);
-
-        animateBounceByVolume();
     }
 
     function animateBounceByVolume() {
@@ -86,12 +85,29 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         bounceTargets.forEach(el => {
-            if (el) {
-                el.style.transform = `scale(${scale})`;
-            }
+            if (el) el.style.transform = `scale(${scale})`;
         });
 
-        requestAnimationFrame(animateBounceByVolume);
+        bounceAnimationId = requestAnimationFrame(animateBounceByVolume);
+    }
+
+    function startBounceEffect() {
+        if (!bounceAnimationId) {
+            bounceAnimationId = requestAnimationFrame(animateBounceByVolume);
+        }
+    }
+
+    function stopBounceEffect() {
+        if (bounceAnimationId) {
+            cancelAnimationFrame(bounceAnimationId);
+            bounceAnimationId = null;
+        }
+
+        // Reset transform only if paused
+        const allEls = document.querySelectorAll('.main-content-wrapper *');
+        allEls.forEach(el => {
+            el.style.transform = '';
+        });
     }
 
     elements.playPauseBtn.addEventListener('click', async () => {
@@ -100,16 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 await elements.musicTrack.play();
                 state.isPlaying = true;
                 elements.playPauseBtn.textContent = 'pause';
-                startBounceEffect();
                 if (!audioCtx) initAudioAnalyzer();
+                startBounceEffect();
             } else {
                 elements.musicTrack.pause();
                 state.isPlaying = false;
                 elements.playPauseBtn.textContent = 'play_arrow';
                 stopBounceEffect();
-                document.querySelectorAll('.main-content-wrapper *').forEach(el => {
-                    el.style.transform = '';
-                });
             }
         } catch (err) {
             console.error("Playback error:", err);
@@ -184,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await elements.musicTrack.play();
             state.isPlaying = true;
             elements.playPauseBtn.textContent = 'pause';
+
             if (!audioCtx) initAudioAnalyzer();
             startBounceEffect();
         } catch (err) {
@@ -191,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Tilt effect
     const tiltTarget = elements.mainWrapper;
     let tiltX = 0, tiltY = 0;
     document.addEventListener('mousemove', e => {
@@ -207,17 +222,4 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(applyTilt);
     }
     applyTilt();
-
-    let bounceAnimationId = null;
-    function startBounceEffect() {
-        if (!bounceAnimationId) {
-            bounceAnimationId = requestAnimationFrame(animateBounceByVolume);
-        }
-    }
-    function stopBounceEffect() {
-        if (bounceAnimationId) {
-            cancelAnimationFrame(bounceAnimationId);
-            bounceAnimationId = null;
-        }
-    }
 });
