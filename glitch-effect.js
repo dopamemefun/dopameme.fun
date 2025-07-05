@@ -1,6 +1,6 @@
 // glitch-effect.js
 
-alert("Script is running!"); // Keep this for now
+alert("Script is running!"); // Keep this for now to confirm execution
 
 const glitchTextElement = document.getElementById('glitchText');
 const musicTrack = document.getElementById('musicTrack');
@@ -23,13 +23,16 @@ let titleGlitchInterval;
 const characters = "01345789_=-+[]{}|";
 let glitchInterval;
 
-// NEW CHANGE: Re-enabled Web Audio API global variables
+// Re-enabled Web Audio API global variables
 let audioContext;
 let analyser;
 let audioSource;
 let dataArray;
 let currentTiltTransform = '';
 let animationFrameId = null;
+
+// Variable to store the last non-zero volume
+let lastKnownVolume = 0.5; // Initialize with a default volume
 
 function getRandomChar(charSet) {
     const randomIndex = Math.floor(Math.random() * charSet.length);
@@ -62,7 +65,8 @@ function applyTitleGlitch() {
 
 glitchInterval = setInterval(applyBodyTextReadableGlitch, 250);
 
-let isPlaying = false;
+// isPlaying will still track "audible" or "silent"
+let isPlaying = false; 
 
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
@@ -85,8 +89,11 @@ musicTrack.addEventListener('loadedmetadata', () => {
         totalTimeSpan.textContent = "00:00";
         progressBar.max = 0;
     }
-    musicTrack.volume = parseFloat(volumeBar.value);
+    musicTrack.volume = lastKnownVolume;
+    volumeBar.value = lastKnownVolume;
     updateVolumeIcon();
+    // NEW: Update the playPauseBtn icon on load based on initial volume
+    updatePlayPauseBtnIcon();
 });
 
 musicTrack.addEventListener('canplaythrough', () => {
@@ -109,49 +116,65 @@ musicTrack.addEventListener('error', (e) => {
     console.error("Audio error event:", e.target.error.code, e.target.error.message);
 });
 
-// Play/Pause button click handler - REVISED FOR AGGRESSIVE STOP/START
-playPauseBtn.addEventListener('click', async () => { // Made async again
-    if (isPlaying) {
-        console.log("Button clicked: isPlaying is TRUE. Attempting aggressive PAUSE.");
-        musicTrack.pause(); // Still call pause() on HTMLMediaElement
-        playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
+// NEW FUNCTION: Updates the play/pause button icon based on musicTrack volume
+function updatePlayPauseBtnIcon() {
+    if (musicTrack.volume === 0) {
+        playPauseBtn.querySelector('.material-icons').textContent = 'volume_off';
+    } else if (musicTrack.volume < 0.5) {
+        playPauseBtn.querySelector('.material-icons').textContent = 'volume_down';
+    } else {
+        playPauseBtn.querySelector('.material-icons').textContent = 'volume_up';
+    }
+}
+
+// Play/Pause button click handler - MODIFIED FOR VOLUME CONTROL & ICON
+playPauseBtn.addEventListener('click', async () => {
+    if (isPlaying) { // isPlaying means currently audible
+        console.log("Button clicked: isPlaying is TRUE. Muting audio.");
+        lastKnownVolume = musicTrack.volume; // Save current volume before muting
+        musicTrack.volume = 0; // Set volume to 0
+        volumeBar.value = 0; // Update volume slider
+        updateVolumeIcon(); // Update main volume icon
+        updatePlayPauseBtnIcon(); // NEW: Update the playPauseBtn icon to volume_off
+
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
-        // NEW CHANGE: Aggressively disconnect audio source to stop sound
-        if (audioSource) {
-            audioSource.disconnect(analyser); // Disconnect from analyser
-            analyser.disconnect(audioContext.destination); // Disconnect analyser from speakers
-            console.log("Web Audio nodes disconnected.");
-        }
+
         if (audioContext && audioContext.state === 'running') {
-            await audioContext.suspend(); // Attempt to suspend context
+            await audioContext.suspend();
             console.log("AudioContext suspended.");
         }
-    } else {
-        console.log("Button clicked: isPlaying is FALSE. Attempting aggressive PLAY.");
+
+    } else { // isPlaying means currently silent/muted
+        console.log("Button clicked: isPlaying is FALSE. Unmuting audio.");
         try {
-            await initAudioAnalysis(); // Ensure context is running and source is ready
-            // NEW CHANGE: If source was disconnected, re-connect it
-            if (audioSource && audioContext.state === 'running') {
-                audioSource.connect(analyser);
-                analyser.connect(audioContext.destination);
-                console.log("Web Audio nodes reconnected.");
-            }
-            musicTrack.play(); // Call play() on HTMLMediaElement
-            playPauseBtn.querySelector('.material-icons').textContent = 'pause';
-            if (!animationFrameId) {
+            await initAudioAnalysis();
+            
+            musicTrack.play(); 
+
+            musicTrack.volume = lastKnownVolume; // Restore previous volume
+            volumeBar.value = lastKnownVolume; // Update volume slider
+            updateVolumeIcon(); // Update main volume icon
+            updatePlayPauseBtnIcon(); // NEW: Update the playPauseBtn icon to volume_up/down
+            
+            if (!animationFrameId && musicTrack.volume > 0) {
                 animateBass();
             }
+
             console.log("musicTrack.play() Promise RESOLVED.");
         } catch (e) {
             console.error("musicTrack.play() Promise REJECTED:", e);
-            playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
+            // On rejection, ensure icons and state reflect no sound
+            musicTrack.volume = 0; // Ensure it's muted if play failed
+            volumeBar.value = 0;
+            updateVolumeIcon();
+            updatePlayPauseBtnIcon(); // NEW: Ensure playPauseBtn icon is volume_off
             isPlaying = false;
         }
     }
-    isPlaying = !isPlaying;
+    isPlaying = !isPlaying; // Toggle isPlaying based on audible state
     console.log("isPlaying toggled to:", isPlaying);
 });
 
@@ -159,9 +182,24 @@ progressBar.addEventListener('input', () => {
     musicTrack.currentTime = progressBar.value;
 });
 
+// Volume bar functionality - MODIFIED to save lastKnownVolume
 volumeBar.addEventListener('input', () => {
-    musicTrack.volume = parseFloat(volumeBar.value);
+    const newVolume = parseFloat(volumeBar.value);
+    musicTrack.volume = newVolume;
+    if (newVolume > 0) {
+        lastKnownVolume = newVolume; // Only update lastKnownVolume if not muting
+    }
     updateVolumeIcon();
+    updatePlayPauseBtnIcon(); // NEW: Update the playPauseBtn icon
+    // Control bass animation based on direct volume change
+    if (musicTrack.volume === 0) {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    } else if (!animationFrameId && isPlaying) { // Only restart if isPlaying (meaning the "mute" button was pressed to unmute)
+        animateBass();
+    }
 });
 
 function updateVolumeIcon() {
@@ -174,27 +212,45 @@ function updateVolumeIcon() {
     }
 }
 
+// Mute/unmute on volume icon click - MODIFIED to save lastKnownVolume
 volumeIcon.addEventListener('click', () => {
     if (musicTrack.volume > 0) {
+        lastKnownVolume = musicTrack.volume; // Save current volume before muting
         musicTrack.volume = 0;
         volumeBar.value = 0;
     } else {
-        musicTrack.volume = 0.5;
-        volumeBar.value = 0.5;
+        musicTrack.volume = lastKnownVolume; // Restore to the last non-zero level
+        volumeBar.value = lastKnownVolume;
     }
     updateVolumeIcon();
+    updatePlayPauseBtnIcon(); // NEW: Update the playPauseBtn icon
+    // Control bass animation based on direct volume change
+    if (musicTrack.volume === 0) {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+    } else if (!animationFrameId && isPlaying) {
+        animateBass();
+    }
 });
 
-musicTrack.addEventListener('canplay', updateVolumeIcon);
+musicTrack.addEventListener('canplay', () => {
+    // Set initial volume when audio can play
+    musicTrack.volume = lastKnownVolume;
+    volumeBar.value = lastKnownVolume;
+    updateVolumeIcon();
+    updatePlayPauseBtnIcon(); // NEW: Set initial icon for playPauseBtn
+});
 
 const entryScreen = document.getElementById('entryScreen');
 const enterSiteBtn = document.getElementById('enterSiteBtn');
 const siteContent = document.getElementById('siteContent');
 
-// Entry button click handler - REVISED FOR AGGRESSIVE START
-enterSiteBtn.addEventListener('click', async () => { // Made async again
+// Entry button click handler - MODIFIED FOR VOLUME & BASS START
+enterSiteBtn.addEventListener('click', async () => {
     entryScreen.classList.add('fade-out');
-    entryScreen.addEventListener('transitionend', async () => { // And here
+    entryScreen.addEventListener('transitionend', async () => {
         entryScreen.style.display = 'none';
         siteContent.classList.add('active');
 
@@ -202,10 +258,10 @@ enterSiteBtn.addEventListener('click', async () => { // Made async again
             await initAudioAnalysis(); // Initialize and ensure context is running
             musicTrack.play();
             isPlaying = true;
-            playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+            updatePlayPauseBtnIcon(); // NEW: Set the playPauseBtn icon after starting
             titleGlitchInterval = setInterval(applyTitleGlitch, 300);
 
-            if (!animationFrameId) {
+            if (!animationFrameId && musicTrack.volume > 0) {
                 animateBass();
             }
 
@@ -217,7 +273,10 @@ enterSiteBtn.addEventListener('click', async () => { // Made async again
         } catch (error) {
             console.error("Initial musicTrack.play() Promise REJECTED after entry:", error);
             isPlaying = false;
-            playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
+            musicTrack.volume = 0; // Ensure mute if play failed
+            volumeBar.value = 0;
+            updateVolumeIcon();
+            updatePlayPauseBtnIcon(); // NEW: Set icon to volume_off if play failed
         }
 
     }, { once: true });
@@ -249,7 +308,7 @@ if (mainContentWrapper) {
     });
 }
 
-// NEW CHANGE: Re-enabled Web Audio API Section
+// Web Audio API Section (Re-enabled)
 async function initAudioAnalysis() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -258,29 +317,36 @@ async function initAudioAnalysis() {
         dataArray = new Uint8Array(analyser.frequencyBinCount);
 
         audioSource = audioContext.createMediaElementSource(musicTrack);
-        // NEW CHANGE: Only connect here, not in animateBass or elsewhere
         audioSource.connect(analyser);
         analyser.connect(audioContext.destination);
-    } 
+    }
     
     if (audioContext.state === 'suspended') {
-        console.log("AudioContext state was suspended, resuming..."); // NEW LOG
+        console.log("AudioContext state was suspended, resuming...");
         return audioContext.resume();
     }
-    console.log("AudioContext state is running or pending."); // NEW LOG
+    console.log("AudioContext state is running or pending.");
     return Promise.resolve();
 }
 
+// animateBass function - MODIFIED to stop if volume is zero
 function animateBass() {
-    if (!analyser || !dataArray || (audioContext && audioContext.state !== 'running')) { // Changed check
+    // Stop animation if music is effectively 'paused' by volume zero or not considered playing
+    if (musicTrack.volume === 0 || !isPlaying) { 
         animationFrameId = null;
-        console.log("Stopping bass animation."); // NEW LOG
+        console.log("Stopping bass animation due to zero volume or not playing.");
+        return;
+    }
+
+    if (!analyser || !dataArray || (audioContext && audioContext.state !== 'running')) {
+        animationFrameId = null;
+        console.log("Stopping bass animation due to analyser/context issue.");
         return;
     }
     
     analyser.getByteFrequencyData(dataArray);
     let bass = 0;
-    for (let i = 0; i < 10; i++) { 
+    for (let i = 0; i < 10; i++) {
         bass += dataArray[i];
     }
     bass /= 10;
