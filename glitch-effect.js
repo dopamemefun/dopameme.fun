@@ -165,14 +165,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================
     // ENTRY ANIMATION
     // ======================
-    document.getElementById('enterSiteBtn').addEventListener('click', () => {
-        const entryScreen = document.getElementById('entryScreen');
-        entryScreen.classList.add('fade-out');
-        entryScreen.addEventListener('transitionend', () => {
-            entryScreen.style.display = 'none';
-            elements.siteContent.classList.add('active');
-        }, { once: true });
-    });
+  document.getElementById('enterSiteBtn').addEventListener('click', async () => {
+    const entryScreen = document.getElementById('entryScreen');
+    
+    // Try to autoplay the music
+    try {
+        await elements.musicTrack.play();
+        state.isPlaying = true;
+        elements.playPauseBtn.textContent = 'pause';
+        startBounceEffect();
+    } catch (err) {
+        console.warn('Autoplay failed:', err);
+    }
+
+    // Transition to the site content
+    entryScreen.classList.add('fade-out');
+    entryScreen.addEventListener('transitionend', () => {
+        entryScreen.style.display = 'none';
+        elements.siteContent.classList.add('active');
+    }, { once: true });
+});
 
     // Initialize
     elements.musicTrack.volume = state.lastVolume;
