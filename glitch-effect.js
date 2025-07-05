@@ -120,16 +120,16 @@ playPauseBtn.addEventListener('click', () => {
         }
     } else {
         // Ensure audio context is resumed or started on play
+        // Call initAudioAnalysis before trying to play to ensure context is ready
+        initAudioAnalysis(); 
         if (audioContext && audioContext.state === 'suspended') {
             audioContext.resume();
         }
         musicTrack.play();
         playPauseBtn.querySelector('.material-icons').textContent = 'pause';
         
-        // Initialize audio analysis and start animation loop only if not already running
-        if (!audioContext || audioContext.state === 'closed') { // Reinitialize if closed
-             initAudioAnalysis();
-        } else if (!animationFrameId) { // Restart animation if paused
+        // Start animation if it's not running
+        if (!animationFrameId) {
             animateBass();
         }
     }
@@ -192,7 +192,11 @@ enterSiteBtn.addEventListener('click', () => {
         titleGlitchInterval = setInterval(applyTitleGlitch, 300);
 
         // Initialize and start the Web Audio API bass effect when music starts playing
-        initAudioAnalysis(); // This will start the requestAnimationFrame loop
+        // Call initAudioAnalysis and then animateBass explicitly here
+        initAudioAnalysis(); 
+        if (!animationFrameId) { // Ensure it's not already running
+            animateBass();
+        }
 
         if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
             totalTimeSpan.textContent = formatTime(musicTrack.duration);
@@ -237,11 +241,23 @@ function initAudioAnalysis() {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioContext.createAnalyser();
         analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        dataArray = new Uint8Array(analyser.frequencyBinBin);
 
-        audioSource = audioContext.createMediaElementSource(musicTrack);
-        audioSource.connect(analyser);
-        analyser.connect(audioContext.destination);
+        // Connect audioSource if it exists, otherwise create it
+        if (!audioSource) {
+            audioSource = audioContext.createMediaElementSource(musicTrack);
+            audioSource.connect(analyser);
+            analyser.connect(audioContext.destination);
+        } else {
+             // If audioSource already exists, just reconnect it in case it got disconnected
+             audioSource.connect(analyser);
+             analyser.connect(audioContext.destination);
+        }
+        
+        // Resume context if it's suspended immediately after creation if needed
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
 
         // Start the animation loop only once after context is set up
         if (!animationFrameId) { // Prevent multiple requests
@@ -256,12 +272,20 @@ function initAudioAnalysis() {
 }
 
 function animateBass() {
+    if (!analyser || !dataArray) {
+        // If analyser or dataArray aren't initialized, stop the animation loop
+        console.warn("Audio analysis not initialized. Stopping bass animation.");
+        animationFrameId = null;
+        return;
+    }
+    
     analyser.getByteFrequencyData(dataArray);
     let bass = 0;
-    for (let i = 0; i < 5; i++) {
+    // Consider slightly more bass bins if your music has deep bass notes
+    for (let i = 0; i < 8; i++) { // Increased from 5 to 8 for potentially broader bass detection
         bass += dataArray[i];
     }
-    bass /= 5;
+    bass /= 8; // Adjust divisor based on new loop limit
 
     const intensityFactor = 0.8;
     const minBassThreshold = 100;
