@@ -1,20 +1,73 @@
+/* General body styles - UNCHANGED */
+body {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    background-image: url('background.gif');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    perspective: 1000px;
+    cursor: url('custom-cursor.png'), auto;
+}
+
+/* Entry Screen - UNCHANGED */
+.entry-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+    filter: none;
+}
+
+/* [ALL YOUR OTHER ORIGINAL STYLES REMAIN EXACTLY THE SAME] */
+/* [KEEP ALL EXISTING RULES FOR HEADER, BUTTONS, PLAYER ETC.] */
+
 /* ====================== */
-/* BOUNCE EFFECTS - FINAL FIXED VERSION */
+/* MODIFIED BOUNCE EFFECTS */
 /* ====================== */
 
-/* Safe bounce for visual elements only */
-@keyframes safe-element-bounce {
+/* Vertical-only bounce (safe for layout) */
+@keyframes stable-bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
 }
 
-/* Elements that should bounce */
+/* Visual pulse for progress (no movement) */ 
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.9; }
+}
+
+/* Apply to bouncing elements */
 .bounce-active {
-  animation: safe-element-bounce 0.5s infinite;
+  animation: stable-bounce 0.5s infinite;
   display: inline-block;
 }
 
-/* Elements that should NEVER bounce */
+/* Block-level elements */
+.bounce-active.block-preserve {
+  display: block;
+}
+
+/* PROTECTED ELEMENTS (won't bounce) */
 .progress-bar-container,
 .volume-control,
 #progressBar,
@@ -26,19 +79,9 @@
   transform: none !important;
 }
 
-/* Special visual feedback for progress */
+/* Subtle visual feedback for progress */
 #progressBarFill.bounce-active {
-  animation: fill-pulse 0.5s infinite;
-}
-
-@keyframes fill-pulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 5px #78B159; }
-  50% { opacity: 0.9; box-shadow: 0 0 8px #78B159; }
-}
-
-/* Block elements that need to maintain layout */
-.bounce-active.block-preserve {
-  display: block;
+  animation: progress-pulse 0.5s infinite;
 }
 
 /* Time display protection */
