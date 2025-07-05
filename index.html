@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Dopameme.fun</title>
     
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
+    <!-- Added CSS to completely remove scrollbars and prevent scrolling -->
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; /* Removes all scrollbars and disables scrolling */
+        }
+    </style>
 </head>
 <body>
 
@@ -27,7 +35,7 @@
         <div class="main-content-wrapper">
             <div class="header-section">
                 <h1><span id="glitchText">Dopameme</span></h1>
-                <img id="customHeaderImage" src="dopc6emz-image.png" alt="DopC6emz Header">
+                <img id="customHeaderImage" src="dopc6emz-image.png" alt="DopC6emz Header" />
                 
                 <a href="https://discord.gg/pepe" target="_blank" id="joinNowLink">
                     <button id="joinNowBtn">
@@ -38,7 +46,7 @@
 
             <div class="audio-player-container">
                 <div class="player-visuals">
-                    <img id="albumArt" src="album-art.png" alt="Album Art">
+                    <img id="albumArt" src="album-art.png" alt="Album Art" />
                     <div class="song-info">
                         <div class="song-title">SHA STACCZ - DANGER PT2</div>
                         <div class="song-artist">SHA STACCZ (feat. bagvisuals)</div>
@@ -51,7 +59,7 @@
                     </div>
                     <div class="progress-bar-container">
                         <div id="progressBarFill" class="progress-bar-fill"></div>
-                        <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100">
+                        <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100" />
                     </div>
                     <div class="playback-buttons">
                         <button id="playPauseBtn" class="material-icons">play_arrow</button>
@@ -59,13 +67,14 @@
                         
                         <div class="volume-control">
                             <span id="volumeIcon" class="material-icons">volume_up</span>
-                            <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="0.5">
+                            <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="0.5" />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <script src="glitch-effect.js"></script>
 </body>
-</html
+</html>
