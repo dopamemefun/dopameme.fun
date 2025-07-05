@@ -34,7 +34,6 @@
                         <span class="material-icons">discord</span> Join Now!
                     </button>
                 </a>
-
             </div>
 
             <div class="audio-player-container">
@@ -55,9 +54,9 @@
                         <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100">
                     </div>
                     <div class="playback-buttons">
+                        <button id="playPauseBtn" class="material-icons">play_arrow</button>
                         <audio id="musicTrack" src="music.mp3" preload="auto" loop></audio>
                         
-
                         <div class="volume-control">
                             <span id="volumeIcon" class="material-icons">volume_up</span>
                             <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="0.5">
@@ -68,6 +67,5 @@
         </div>
     </div>
     <script src="glitch-effect.js"></script>
-
 </body>
 </html>
