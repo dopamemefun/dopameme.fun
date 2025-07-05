@@ -71,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         analyser.getByteFrequencyData(dataArray);
         const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
 
-        // Limit bounce scale to max ~1.05 to avoid overflow
         const maxScaleIncrease = 0.05;
         const scale = 1 + Math.min(volume / 1024, maxScaleIncrease);
 
@@ -144,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elements.volumeBar.addEventListener('input', () => {
-        const vol = elements.volumeBar.value / 100;
+        const vol = parseFloat(elements.volumeBar.value);
         elements.musicTrack.volume = vol;
         state.lastVolume = vol;
         updateVolumeIcon(vol);
@@ -166,26 +165,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fill) fill.style.width = `${volume * 100}%`;
     }
 
-    // Initial volume setup
     elements.musicTrack.volume = state.lastVolume;
-    elements.volumeBar.value = state.lastVolume * 100;
+    elements.volumeBar.value = state.lastVolume;
     updateVolumeIcon(state.lastVolume);
     updateVolumeFill(state.lastVolume);
 
-    // Progress bar seeking
     elements.progressBar.addEventListener('input', () => {
         elements.musicTrack.currentTime = elements.progressBar.value;
     });
 
-    // Entry screen logic
     const entryScreen = document.querySelector('.entry-screen');
     const enterBtn = document.getElementById('enterSiteBtn');
-    enterBtn.addEventListener('click', () => {
+    enterBtn.addEventListener('click', async () => {
         entryScreen.classList.add('fade-out');
         elements.siteContent.classList.add('active');
+
+        try {
+            await elements.musicTrack.play();
+            state.isPlaying = true;
+            elements.playPauseBtn.textContent = 'pause';
+            if (!audioCtx) initAudioAnalyzer();
+            startBounceEffect();
+        } catch (err) {
+            console.error('Autoplay/playback failed:', err);
+        }
     });
 
-    // Tilt effect
     const tiltTarget = elements.mainWrapper;
     let tiltX = 0, tiltY = 0;
     document.addEventListener('mousemove', e => {
@@ -193,9 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
 
-        // Smaller tilt range for no overflow
-        tiltX = ((e.clientY - centerY) / 100) * 5;  // max ~5 deg X tilt
-        tiltY = (-(e.clientX - centerX) / 100) * 5; // max ~5 deg Y tilt
+        tiltX = ((e.clientY - centerY) / 100) * 5;
+        tiltY = (-(e.clientX - centerX) / 100) * 5;
     });
 
     function applyTilt() {
