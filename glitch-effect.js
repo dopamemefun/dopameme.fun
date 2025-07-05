@@ -13,6 +13,8 @@ const volumeIcon = document.getElementById('volumeIcon');
 const albumArt = document.getElementById('albumArt'); // Assuming album art element
 const songTitleElement = document.querySelector('.song-title');
 const songArtistElement = document.querySelector('.song-artist');
+const customHeaderImage = document.getElementById('customHeaderImage'); // New: reference to custom header image
+const joinNowBtn = document.getElementById('joinNowBtn'); // New: reference to the Join Now button
 
 // Save the original text for the main glitch effect
 const originalGlitchText = glitchTextElement.textContent;
@@ -27,6 +29,7 @@ let titleGlitchInterval; // Variable to store the title glitch interval ID
 const characters = "01345789_=-+[]{}|"; // Only these characters will be used for glitches.
 
 let glitchInterval; // To hold the interval ID for clearing
+let bassEffectInterval; // NEW: To hold the interval ID for the bass effect
 
 // Function to get a random character from the defined set
 function getRandomChar(charSet) {
@@ -68,7 +71,7 @@ function revertBodyTextToOriginal() {
 }
 
 // Start the main glitch effect (slower now)
-glitchInterval = setInterval(applyBodyTextReadableGlitch, 250); // Increased from 150ms to 250ms
+glitchInterval = setInterval(applyBodyTextReadableGlitch, 250);
 
 // --- Audio Player Logic ---
 
@@ -115,9 +118,11 @@ playPauseBtn.addEventListener('click', () => {
     if (isPlaying) {
         musicTrack.pause();
         playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
+        clearInterval(bassEffectInterval); // NEW: Stop bass effect on pause
     } else {
         musicTrack.play();
         playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+        bassEffectInterval = setInterval(applyBassEffect, 500); // NEW: Restart bass effect on play
     }
     isPlaying = !isPlaying;
 });
@@ -180,6 +185,9 @@ enterSiteBtn.addEventListener('click', () => {
         // Start the tab title glitch
         titleGlitchInterval = setInterval(applyTitleGlitch, 300); // Glitch the tab title every 300ms
 
+        // Start the bass effect when music starts playing
+        bassEffectInterval = setInterval(applyBassEffect, 500); // NEW: Start bass effect here
+
         // Set initial total time and progress bar max on entry, just in case
         if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
             totalTimeSpan.textContent = formatTime(musicTrack.duration);
@@ -212,12 +220,12 @@ if (mainContentWrapper) {
     });
 }
 
-// --- Bass Effect (Placeholder - RE-ENABLED) ---
+// --- Bass Effect (Placeholder - RE-ENABLED and STRONGER) ---
 // This part is conceptual. For *actual* audio reactive bass effect,
 // you would need to implement Web Audio API for frequency analysis.
 // This is a visual pulse that randomly scales the content wrapper.
 function applyBassEffect() {
-    const pulseStrength = 0.005; // Small scale change
+    const pulseStrength = 0.01; // Increased strength from 0.005 to 0.01
     const currentScale = parseFloat(mainContentWrapper.style.transform.match(/scale\(([^)]+)\)/)?.[1] || 1);
     const newScale = 1 + Math.random() * pulseStrength - (pulseStrength / 2); // Random small pulse
 
@@ -236,5 +244,6 @@ function applyBassEffect() {
     }, 100); // Quick pulse
 }
 
-// Trigger bass effect periodically (this is NOT audio-reactive)
-setInterval(applyBassEffect, 500); // Re-enabled to run every 0.5 seconds for a visual pulse
+// The bass effect interval is now managed by the play/pause button and entry screen logic.
+// This line below is commented out because it's now controlled dynamically.
+// setInterval(applyBassEffect, 500);
