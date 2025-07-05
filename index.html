@@ -1,83 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dopameme.fun</title>
-    
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script><script>linkvertise(414236, {whitelist: ["dopameme.fun"], blacklist: []});</script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1883840848021043"
-     crossorigin="anonymous"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dopameme.fun</title>
 
-    <!-- Added CSS to completely remove scrollbars and prevent scrolling -->
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden; /* Removes all scrollbars and disables scrolling */
-        }
-    </style>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ✅ Linkvertise Script -->
+  <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
+  <script>
+    linkvertise(414236, {
+      whitelist: ["dopameme.fun"],
+      blacklist: []
+    });
+  </script>
+
+  <!-- (Optional for future AdSense support) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1883840848021043" crossorigin="anonymous"></script>
+
+  <!-- Style Fixes -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .linkvertise-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #000;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-family: 'Press Start 2P', sans-serif;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-top: 15px;
+    }
+
+    .linkvertise-btn:hover {
+      background-color: #111;
+    }
+  </style>
 </head>
+
 <body>
 
-    <div id="entryScreen" class="entry-screen">
-        <button id="enterSiteBtn" class="glitch-button">
-            【click to enter】
-        </button>
-    </div>
+  <div id="entryScreen" class="entry-screen">
+    <button id="enterSiteBtn" class="glitch-button">
+      【click to enter】
+    </button>
+  </div>
 
-    <div id="siteContent" class="site-content">
-        <div class="main-content-wrapper">
-            <div class="header-section">
-                <h1><span id="glitchText">Dopameme</span></h1>
-                <img id="customHeaderImage" src="dopc6emz-image.png" alt="DopC6emz Header" />
-                
-                <a href="https://www.youtube.com/watch?v=k6cqEiWfwv0" target="_blank" id="joinNowLink">
-                    <button id="joinNowBtn">
-                        <span class="material-icons">discord</span> Join Now!
-                    </button>
-                </a>
-            </div>
+  <div id="siteContent" class="site-content">
+    <div class="main-content-wrapper">
+      <div class="header-section">
+        <h1><span id="glitchText">Dopameme</span></h1>
+        <img id="customHeaderImage" src="dopc6emz-image.png" alt="DopC6emz Header" />
 
-            <div class="audio-player-container">
-                <div class="player-visuals">
-                    <img id="albumArt" src="album-art.png" alt="Album Art" />
-                    <div class="song-info">
-                        <div class="song-title">SHA STACCZ - DANGER PT2</div>
-                        <div class="song-artist">SHA STACCZ (feat. bagvisuals)</div>
-                    </div>
-                </div>
+        <!-- ✅ Updated Join Now button (monetized by Linkvertise) -->
+        <a href="https://www.youtube.com/watch?v=k6cqEiWfwv0" target="_blank" class="linkvertise-btn">
+          <span class="material-icons">discord</span>&nbsp;Join Now!
+        </a>
+      </div>
 
-                <div class="player-controls">
-                    <div class="time-display">
-                        <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div id="progressBarFill" class="progress-bar-fill"></div>
-                        <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100" />
-                    </div>
-                    <div class="playback-buttons">
-                        <button id="playPauseBtn" class="material-icons">play_arrow</button>
-                        <audio id="musicTrack" src="music.mp3" preload="auto" loop></audio>
-                        
-                        <div class="volume-control">
-                            <span id="volumeIcon" class="material-icons">volume_up</span>
-                            <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="0.5" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div class="audio-player-container">
+        <div class="player-visuals">
+          <img id="albumArt" src="album-art.png" alt="Album Art" />
+          <div class="song-info">
+            <div class="song-title">SHA STACCZ - DANGER PT2</div>
+            <div class="song-artist">SHA STACCZ (feat. bagvisuals)</div>
+          </div>
         </div>
-    </div>
 
-    <script src="glitch-effect.js"></script>
+        <div class="player-controls">
+          <div class="time-display">
+            <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
+          </div>
+          <div class="progress-bar-container">
+            <div id="progressBarFill" class="progress-bar-fill"></div>
+            <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100" />
+          </div>
+          <div class="playback-buttons">
+            <button id="playPauseBtn" class="material-icons">play_arrow</button>
+            <audio id="musicTrack" src="music.mp3" preload="auto" loop></audio>
+
+            <div class="volume-control">
+              <span id="volumeIcon" class="material-icons">volume_up</span>
+              <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="0.5" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="glitch-effect.js"></script>
 </body>
 </html>
