@@ -1,6 +1,6 @@
-// glitch-effect.js - WITH UNIVERSAL IN-PLACE BOUNCE (FIXED VERSION)
+// glitch-effect.js - PERFECT IN-PLACE BOUNCE (FINAL VERSION)
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
+    // DOM Elements - UPDATED WITH NEW SELECTORS
     const elements = {
         glitchText: document.getElementById('glitchText'),
         musicTrack: document.getElementById('musicTrack'),
@@ -16,9 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
         headerImage: document.getElementById('customHeaderImage'),
         joinBtn: document.getElementById('joinNowBtn'),
         audioPlayer: document.querySelector('.audio-player-container'),
-        timeDisplay: document.querySelector('.time-display'),
+        songTitle: document.querySelector('.song-title'),
+        albumArt: document.querySelector('.album-art'),
         progressContainer: document.querySelector('.progress-bar-container'),
-        volumeControl: document.querySelector('.volume-control')
+        volumeControl: document.querySelector('.volume-control'),
+        timeDisplay: document.querySelector('.time-display')
     };
 
     // State
@@ -55,48 +57,49 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchTitle, 400);
 
     // ======================
-    // UNIVERSAL BOUNCE SYSTEM (FIXED)
+    // PERFECT BOUNCE SYSTEM
     // ======================
-    const bounceElements = [
-        elements.glitchText,
-        elements.headerImage,
-        elements.joinBtn,
-        elements.playPauseBtn,
-        elements.audioPlayer,
-        document.querySelector('.song-title'),
-        document.querySelector('.album-art'),
-        elements.progressContainer,
-        elements.volumeControl
-    ];
-
     function startBounceEffect() {
-        // Set transform origins first
-        elements.volumeBar.style.transformOrigin = 'left center';
-        elements.progressBar.style.transformOrigin = 'left center';
-        
-        bounceElements.forEach(el => {
+        // Standard bounce elements
+        const regularBounceElements = [
+            elements.glitchText,
+            elements.headerImage,
+            elements.joinBtn,
+            elements.playPauseBtn,
+            elements.audioPlayer,
+            elements.songTitle,
+            elements.albumArt,
+            elements.timeDisplay,
+            elements.mainWrapper
+        ];
+
+        regularBounceElements.forEach(el => {
             if (el) {
                 el.classList.add('bounce-active');
-                // Special handling for specific elements
-                if (el === elements.volumeControl || el === elements.progressContainer) {
-                    el.style.transformOrigin = 'left center';
-                }
                 if (getComputedStyle(el).display === 'block') {
                     el.classList.add('block-preserve');
                 }
             }
         });
+
+        // Special horizontal bounce for sliders
+        if (elements.progressFill) {
+            elements.progressFill.classList.add('bounce-active');
+            elements.progressFill.style.transformOrigin = 'left center';
+        }
         
-        elements.mainWrapper.classList.add('bounce-active', 'block-preserve');
-        elements.timeDisplay.style.minWidth = elements.timeDisplay.offsetWidth + 'px';
+        if (elements.volumeBar) {
+            elements.volumeBar.classList.add('bounce-active');
+            elements.volumeBar.style.transformOrigin = 'left center';
+        }
     }
 
     function stopBounceEffect() {
-        document.querySelectorAll('.bounce-active').forEach(el => {
+        // Remove all bounce classes
+        document.querySelectorAll('.bounce-active, .block-preserve').forEach(el => {
             el.classList.remove('bounce-active', 'block-preserve');
             el.style.transformOrigin = '';
         });
-        elements.timeDisplay.style.minWidth = '';
     }
 
     // ======================
@@ -178,6 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.progressBar.value = 0;
     elements.progressFill.style.width = "0%";
     
-    // Pre-set time display width
+    // Ensure time display has consistent width
     elements.timeDisplay.style.fontFeatureSettings = '"tnum"';
 });
