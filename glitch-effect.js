@@ -67,12 +67,16 @@ document.addEventListener('DOMContentLoaded', () => {
         animateBounceByVolume();
     }
 
+    // Tilt variables
+    let tiltX = 0, tiltY = 0;
+    let currentX = 0, currentY = 0;
+
     function animateBounceByVolume() {
         if (!analyser) return;
 
         analyser.getByteFrequencyData(dataArray);
         const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-        const scale = 1 + (volume / 512); // Adjust for bounce sensitivity
+        const scale = 1 + (volume / 512);
 
         const bounceTargets = [
             elements.glitchText,
@@ -86,7 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         bounceTargets.forEach(el => {
-            if (el) el.style.transform = `scale(${scale})`;
+            if (el) {
+                el.style.transform = `scale(${scale}) rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+            }
         });
 
         requestAnimationFrame(animateBounceByVolume);
@@ -179,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.progressFill.style.width = "0%";
     elements.timeDisplay.style.fontFeatureSettings = '"tnum"';
 
-    // ====================== STATIC BOUNCE MODE (fallback) ======================
+    // ====================== STATIC BOUNCE (Fallback) ======================
     function startBounceEffect() {
         const bounceEls = [
             elements.glitchText,
@@ -202,4 +208,22 @@ document.addEventListener('DOMContentLoaded', () => {
             el.classList.remove('bounce-active');
         });
     }
+
+    // ====================== MOUSE-BASED TILT ======================
+    document.addEventListener('mousemove', e => {
+        const rect = elements.mainWrapper.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        tiltX = (e.clientY - centerY) / 40;
+        tiltY = -(e.clientX - centerX) / 40;
+    });
+
+    function updateTilt() {
+        currentX += (tiltX - currentX) * 0.07;
+        currentY += (tiltY - currentY) * 0.07;
+        requestAnimationFrame(updateTilt);
+    }
+
+    updateTilt(); // Start tilt loop
 });
