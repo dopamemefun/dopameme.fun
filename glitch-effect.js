@@ -14,7 +14,7 @@ const albumArt = document.getElementById('albumArt'); // Assuming album art elem
 const songTitleElement = document.querySelector('.song-title');
 const songArtistElement = document.querySelector('.song-artist');
 const customHeaderImage = document.getElementById('customHeaderImage'); // New: reference to custom header image
-const joinNowBtn = document.getElementById('joinNowBtn'); // New: reference to the Join Now button
+// const joinNowBtn = document.getElementById('joinNowBtn'); // Removed: No longer needed for JS redirect
 
 // Save the original text for the main glitch effect
 const originalGlitchText = glitchTextElement.textContent;
@@ -30,6 +30,13 @@ const characters = "01345789_=-+[]{}|"; // Only these characters will be used fo
 
 let glitchInterval; // To hold the interval ID for clearing
 let bassEffectInterval; // NEW: To hold the interval ID for the bass effect
+
+// NEW: Global variables for Web Audio API
+let audioContext;
+let analyser;
+let audioSource;
+let dataArray;
+let currentTiltTransform = ''; // To store the tilt transform and combine with bass shake
 
 // Function to get a random character from the defined set
 function getRandomChar(charSet) {
@@ -118,11 +125,21 @@ playPauseBtn.addEventListener('click', () => {
     if (isPlaying) {
         musicTrack.pause();
         playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
-        clearInterval(bassEffectInterval); // NEW: Stop bass effect on pause
+        if (bassEffectInterval) {
+            clearInterval(bassEffectInterval); // Stop bass effect on pause
+            bassEffectInterval = null;
+        }
     } else {
+        // Ensure audio context is resumed or started on play
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
         musicTrack.play();
         playPauseBtn.querySelector('.material-icons').textContent = 'pause';
-        bassEffectInterval = setInterval(applyBassEffect, 500); // NEW: Restart bass effect on play
+        // Start bass effect if not already running
+        if (!bassEffectInterval) { // Prevent multiple intervals
+            initAudioAnalysis(); // Initialize and start animation loop
+        }
     }
     isPlaying = !isPlaying;
 });
@@ -185,8 +202,8 @@ enterSiteBtn.addEventListener('click', () => {
         // Start the tab title glitch
         titleGlitchInterval = setInterval(applyTitleGlitch, 300); // Glitch the tab title every 300ms
 
-        // Start the bass effect when music starts playing
-        bassEffectInterval = setInterval(applyBassEffect, 500); // NEW: Start bass effect here
+        // Initialize and start the Web Audio API bass effect when music starts playing
+        initAudioAnalysis();
 
         // Set initial total time and progress bar max on entry, just in case
         if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
@@ -198,52 +215,98 @@ enterSiteBtn.addEventListener('click', () => {
 });
 
 
-// --- Tilt Effect Logic (from previous context) ---
+// --- Tilt Effect Logic ---
 const mainContentWrapper = document.querySelector('.main-content-wrapper');
 
 if (mainContentWrapper) {
     mainContentWrapper.addEventListener('mousemove', (e) => {
-        const { clientX, clientY } = e;
-        const { left, top, width, height } = mainContentWrapper.getBoundingClientRect();
+        const { offsetWidth: width, offsetHeight: height } = mainContentWrapper;
+        const { clientX: mouseX, clientY: mouseY } = e;
 
-        const centerX = left + width / 2;
-        const centerY = top + height / 2;
+        const centerX = mainContentWrapper.getBoundingClientRect().left + width / 2;
+        const centerY = mainContentWrapper.getBoundingClientRect().top + height / 2;
 
-        const rotateX = (clientY - centerY) / height * -20; // Max 20 degrees rotation
-        const rotateY = (clientX - centerX) / width * 20;
+        const percentX = (mouseX - centerX) / (width / 2); // -1 to 1
+        const percentY = (mouseY - centerY) / (height / 2); // -1 to 1
 
-        mainContentWrapper.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
+        const rotateX = percentY * 8; // Increased from 5 to 8 for stronger tilt
+        const rotateY = percentX * -8; // Increased from -5 to -8 for stronger tilt
+
+        // Store the tilt transform separately to combine with bass effect
+        currentTiltTransform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        // Apply immediately for smooth mouse response
+        mainContentWrapper.style.transform = currentTiltTransform;
     });
 
     mainContentWrapper.addEventListener('mouseleave', () => {
-        mainContentWrapper.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(0)';
+        currentTiltTransform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)'; // Reset tilt
+        mainContentWrapper.style.transform = currentTiltTransform;
     });
 }
 
-// --- Bass Effect (Placeholder - RE-ENABLED and STRONGER) ---
-// This part is conceptual. For *actual* audio reactive bass effect,
-// you would need to implement Web Audio API for frequency analysis.
-// This is a visual pulse that randomly scales the content wrapper.
-function applyBassEffect() {
-    const pulseStrength = 0.01; // Increased strength from 0.005 to 0.01
-    const currentScale = parseFloat(mainContentWrapper.style.transform.match(/scale\(([^)]+)\)/)?.[1] || 1);
-    const newScale = 1 + Math.random() * pulseStrength - (pulseStrength / 2); // Random small pulse
+// --- Web Audio API Bass Effect ---
+function initAudioAnalysis() {
+    if (!audioContext) { // Only initialize once
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256; // Good balance for bass responsiveness
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-    // Preserve existing rotation if tilt is active
-    const currentTransform = mainContentWrapper.style.transform;
-    const rotateXMatch = currentTransform.match(/rotateX\(([^)]+)\)/);
-    const rotateYMatch = currentTransform.match(/rotateY\(([^)]+)\)/);
-    const existingRotateX = rotateXMatch ? rotateXMatch[0] : 'rotateX(0deg)';
-    const existingRotateY = rotateYMatch ? rotateYMatch[0] : 'rotateY(0deg)';
+        audioSource = audioContext.createMediaElementSource(musicTrack);
+        audioSource.connect(analyser);
+        analyser.connect(audioContext.destination); // Connect to speakers
 
-    mainContentWrapper.style.transform = `${existingRotateX} ${existingRotateY} scale(${newScale}) translateZ(0)`;
-
-    // Revert scale after a short delay
-    setTimeout(() => {
-        mainContentWrapper.style.transform = `${existingRotateX} ${existingRotateY} scale(1) translateZ(0)`;
-    }, 100); // Quick pulse
+        animateBass(); // Start the animation loop
+    }
 }
 
+function animateBass() {
+    analyser.getByteFrequencyData(dataArray);
+    let bass = 0;
+    // Average the first few bins for low frequencies (bass)
+    for (let i = 0; i < 5; i++) { // Can adjust this range (e.g., 0-8) for more bass frequencies
+        bass += dataArray[i];
+    }
+    bass /= 5; // Normalize bass value
+
+    const intensityFactor = 0.8; // Controls how much the bass affects the visual, adjusted for stronger effect
+    const minBassThreshold = 100; // Minimum bass value to trigger effect, adjust if needed
+    const maxShakeTranslate = 8; // Max pixels to shake, increased for stronger shake
+    const maxScaleIncrease = 0.015; // Max scale increase (e.g., 1.5%)
+
+    let bassTransform = '';
+    if (bass > minBassThreshold) {
+        const shakeAmount = (bass - minBassThreshold) * intensityFactor / 255; // Normalize and scale
+
+        // Add random translation (shake)
+        const translateX = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
+        const translateY = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
+        bassTransform += ` translateX(${translateX}px) translateY(${translateY}px)`;
+
+        // Add subtle scale effect (pulse)
+        const scaleAmount = 1 + (shakeAmount * maxScaleIncrease);
+        bassTransform += ` scale(${scaleAmount})`;
+    } else {
+        // When bass is low, ensure elements return to their original scale/position
+        bassTransform = ` scale(1)`; // Ensure scale reverts to 1
+    }
+
+    // Combine current tilt transform with the bass transform
+    mainContentWrapper.style.transform = currentTiltTransform + bassTransform;
+
+    // Continue the animation loop
+    bassEffectInterval = requestAnimationFrame(animateBass);
+}
 // The bass effect interval is now managed by the play/pause button and entry screen logic.
 // This line below is commented out because it's now controlled dynamically.
 // setInterval(applyBassEffect, 500);
+
+// --- Join Now Button Redirection ---
+// The redirection is now handled directly in HTML using an <a> tag.
+// No JavaScript needed here for simple redirection.
+// Make sure your index.html has:
+// <a href="https://discord.gg/pepe" target="_blank" id="joinNowLink">
+//     <button id="joinNowBtn">
+//         <span class="material-icons">discord</span> Join Now!
+//     </button>
+// </a>
