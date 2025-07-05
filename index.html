@@ -49,17 +49,26 @@
                     <div class="time-display">
                         <span id="currentTime">00:00</span> / <span id="totalTime">00:00</span>
                     </div>
+                    
+                    <!-- Updated Progress Bar -->
                     <div class="progress-bar-container">
-                        <div id="progressBarFill" class="progress-bar-fill"></div>
-                        <input type="range" id="progressBar" class="progress-bar" value="0" min="0" max="100">
+                        <div id="progressBarFill">
+                            <div class="progress-thumb"></div>
+                        </div>
                     </div>
+                    
                     <div class="playback-buttons">
                         <button id="playPauseBtn" class="material-icons">play_arrow</button>
                         <audio id="musicTrack" src="music.mp3" preload="auto" loop></audio>
                         
+                        <!-- Updated Volume Control -->
                         <div class="volume-control">
                             <span id="volumeIcon" class="material-icons">volume_up</span>
-                            <input type="range" id="volumeBar" class="volume-bar" min="0" max="1" step="0.01" value="0.5">
+                            <div class="volume-track">
+                                <div class="volume-fill">
+                                    <div class="volume-thumb"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
