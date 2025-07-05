@@ -70,9 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         analyser.getByteFrequencyData(dataArray);
         const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-
-        const maxScale = 1.05; // Max bounce scale to avoid overflow
-        const scale = Math.min(1 + (volume / 512), maxScale);
+        const scale = 1 + (volume / 512);
 
         const bounceTargets = [
             elements.glitchText,
@@ -87,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         bounceTargets.forEach(el => {
             if (el) {
-                el.style.transform = `scale(${scale})`;
+                el.style.transform = scale(${scale});
             }
         });
 
@@ -120,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isNaN(seconds)) return "00:00";
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        return ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')};
     }
 
     elements.musicTrack.addEventListener('timeupdate', () => {
@@ -131,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.totalTime.textContent = formatTime(duration);
         
         if (duration) {
-            elements.progressFill.style.width = `${(current / duration) * 100}%`;
+            elements.progressFill.style.width = ${(current / duration) * 100}%;
             elements.progressBar.value = current;
         }
     });
@@ -204,8 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentX = 0, currentY = 0;
     const tiltTarget = elements.siteContent;
 
-    const maxTilt = 5; // max degrees of tilt
-
     document.addEventListener('mousemove', e => {
         const rect = tiltTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
@@ -218,12 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTilt() {
         currentX += (tiltX - currentX) * 0.07;
         currentY += (tiltY - currentY) * 0.07;
-
-        // Clamp tilt to maxTilt degrees
-        currentX = Math.max(-maxTilt, Math.min(maxTilt, currentX));
-        currentY = Math.max(-maxTilt, Math.min(maxTilt, currentY));
-
-        tiltTarget.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+        tiltTarget.style.transform = rotateX(${currentX}deg) rotateY(${currentY}deg);
         requestAnimationFrame(updateTilt);
     }
 
