@@ -70,7 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         analyser.getByteFrequencyData(dataArray);
         const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-        const scale = 1 + (volume / 512);
+
+        // Limit bounce scale to max ~1.05 to avoid overflow
+        const maxScaleIncrease = 0.05;
+        const scale = 1 + Math.min(volume / 1024, maxScaleIncrease);
 
         const bounceTargets = [
             elements.glitchText,
@@ -141,82 +144,76 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elements.volumeBar.addEventListener('input', () => {
-        const vol = parseFloat(elements.volumeBar.value);
+        const vol = elements.volumeBar.value / 100;
         elements.musicTrack.volume = vol;
         state.lastVolume = vol;
-        elements.volumeIcon.textContent = vol === 0 ? 'volume_off' : vol < 0.5 ? 'volume_down' : 'volume_up';
+        updateVolumeIcon(vol);
+        updateVolumeFill(vol);
     });
 
-    document.getElementById('enterSiteBtn').addEventListener('click', async () => {
-        const entryScreen = document.getElementById('entryScreen');
-
-        try {
-            await elements.musicTrack.play();
-            state.isPlaying = true;
-            elements.playPauseBtn.textContent = 'pause';
-            startBounceEffect();
-            initAudioAnalyzer();
-        } catch (err) {
-            console.warn('Autoplay failed:', err);
+    function updateVolumeIcon(volume) {
+        if (volume === 0) {
+            elements.volumeIcon.textContent = 'volume_off';
+        } else if (volume < 0.5) {
+            elements.volumeIcon.textContent = 'volume_down';
+        } else {
+            elements.volumeIcon.textContent = 'volume_up';
         }
+    }
 
-        entryScreen.classList.add('fade-out');
-        entryScreen.addEventListener('transitionend', () => {
-            entryScreen.style.display = 'none';
-            elements.siteContent.classList.add('active');
-        }, { once: true });
+    function updateVolumeFill(volume) {
+        const fill = document.querySelector('.volume-fill');
+        if (fill) fill.style.width = `${volume * 100}%`;
+    }
+
+    // Initial volume setup
+    elements.musicTrack.volume = state.lastVolume;
+    elements.volumeBar.value = state.lastVolume * 100;
+    updateVolumeIcon(state.lastVolume);
+    updateVolumeFill(state.lastVolume);
+
+    // Progress bar seeking
+    elements.progressBar.addEventListener('input', () => {
+        elements.musicTrack.currentTime = elements.progressBar.value;
     });
 
-    elements.musicTrack.volume = state.lastVolume;
-    elements.volumeBar.value = state.lastVolume;
-    elements.totalTime.textContent = "00:00";
-    elements.progressBar.value = 0;
-    elements.progressFill.style.width = "0%";
-    elements.timeDisplay.style.fontFeatureSettings = '"tnum"';
+    // Entry screen logic
+    const entryScreen = document.querySelector('.entry-screen');
+    const enterBtn = document.getElementById('enterSiteBtn');
+    enterBtn.addEventListener('click', () => {
+        entryScreen.classList.add('fade-out');
+        elements.siteContent.classList.add('active');
+    });
 
-    function startBounceEffect() {
-        const bounceEls = [
-            elements.glitchText,
-            elements.headerImage,
-            elements.joinBtn,
-            elements.playPauseBtn,
-            elements.audioPlayer,
-            elements.songTitle,
-            elements.albumArt,
-            elements.timeDisplay,
-            elements.mainWrapper
-        ];
-        bounceEls.forEach(el => {
-            if (el) el.classList.add('bounce-active');
-        });
-    }
-
-    function stopBounceEffect() {
-        document.querySelectorAll('.bounce-active').forEach(el => {
-            el.classList.remove('bounce-active');
-        });
-    }
-
-    // ✅ TILT SYSTEM
+    // Tilt effect
+    const tiltTarget = elements.mainWrapper;
     let tiltX = 0, tiltY = 0;
-    let currentX = 0, currentY = 0;
-    const tiltTarget = elements.siteContent;
-
     document.addEventListener('mousemove', e => {
         const rect = tiltTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
 
-        tiltX = (e.clientY - centerY) / 40;
-        tiltY = -(e.clientX - centerX) / 40;
+        // Smaller tilt range for no overflow
+        tiltX = ((e.clientY - centerY) / 100) * 5;  // max ~5 deg X tilt
+        tiltY = (-(e.clientX - centerX) / 100) * 5; // max ~5 deg Y tilt
     });
 
-    function updateTilt() {
-        currentX += (tiltX - currentX) * 0.07;
-        currentY += (tiltY - currentY) * 0.07;
-        tiltTarget.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
-        requestAnimationFrame(updateTilt);
+    function applyTilt() {
+        elements.mainWrapper.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(0.9)`;
+        requestAnimationFrame(applyTilt);
     }
+    applyTilt();
 
-    updateTilt();
+    let bounceAnimationId = null;
+    function startBounceEffect() {
+        if (!bounceAnimationId) {
+            bounceAnimationId = requestAnimationFrame(animateBounceByVolume);
+        }
+    }
+    function stopBounceEffect() {
+        if (bounceAnimationId) {
+            cancelAnimationFrame(bounceAnimationId);
+            bounceAnimationId = null;
+        }
+    }
 });
