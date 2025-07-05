@@ -17,7 +17,7 @@ const songArtistElement = document.querySelector('.song-artist');
 // Save the original text for the main glitch effect
 const originalGlitchText = glitchTextElement.textContent;
 
-// NEW: Save the original title text for the tab glitch effect
+// Save the original title text for the tab glitch effect
 const originalTitleText = document.title;
 let titleGlitchInterval; // Variable to store the title glitch interval ID
 
@@ -48,7 +48,7 @@ function applyBodyTextReadableGlitch() {
     glitchTextElement.textContent = glitchedText;
 }
 
-// NEW: Function to apply glitch to the browser tab title
+// Function to apply glitch to the browser tab title
 function applyTitleGlitch() {
     let glitchedTitle = '';
     for (let i = 0; i < originalTitleText.length; i++) {
@@ -177,7 +177,7 @@ enterSiteBtn.addEventListener('click', () => {
         isPlaying = true;
         playPauseBtn.querySelector('.material-icons').textContent = 'pause';
 
-        // NEW: Start the tab title glitch
+        // Start the tab title glitch
         titleGlitchInterval = setInterval(applyTitleGlitch, 300); // Glitch the tab title every 300ms
 
         // Set initial total time and progress bar max on entry, just in case
@@ -212,13 +212,11 @@ if (mainContentWrapper) {
     });
 }
 
-// --- Bass Effect (Placeholder, from previous context) ---
-// This part is conceptual. Actual audio reactive bass effect requires Web Audio API.
-// For now, this is a visual placeholder for the idea.
+// --- Bass Effect (Placeholder - RE-ENABLED) ---
+// This part is conceptual. For *actual* audio reactive bass effect,
+// you would need to implement Web Audio API for frequency analysis.
+// This is a visual pulse that randomly scales the content wrapper.
 function applyBassEffect() {
-    // Example: slightly scale the wrapper or add/remove a class for pulse
-    // This is not actual audio reactivity, but a visual pulse.
-    // If you want real bass reaction, you'd need Web Audio API for frequency analysis.
     const pulseStrength = 0.005; // Small scale change
     const currentScale = parseFloat(mainContentWrapper.style.transform.match(/scale\(([^)]+)\)/)?.[1] || 1);
     const newScale = 1 + Math.random() * pulseStrength - (pulseStrength / 2); // Random small pulse
@@ -239,4 +237,4 @@ function applyBassEffect() {
 }
 
 // Trigger bass effect periodically (this is NOT audio-reactive)
-// setInterval(applyBassEffect, 500); // Every 0.5 seconds for a visual pulse
+setInterval(applyBassEffect, 500); // Re-enabled to run every 0.5 seconds for a visual pulse
