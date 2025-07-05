@@ -1,6 +1,8 @@
+alert("Script is running!"); // Add this line
 // glitch-effect.js
 
 // Make sure these elements are correctly identified
+// ... rest of your code ...
 const glitchTextElement = document.getElementById('glitchText');
 const musicTrack = document.getElementById('musicTrack');
 const playPauseBtn = document.getElementById('playPauseBtn');
