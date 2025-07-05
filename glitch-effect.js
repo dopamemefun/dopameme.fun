@@ -4,7 +4,7 @@ alert("Script is running!"); // Keep this for now to confirm execution
 
 const glitchTextElement = document.getElementById('glitchText');
 const musicTrack = document.getElementById('musicTrack');
-const playPauseBtn = document.getElementById('playPauseBtn');
+// REMOVED: const playPauseBtn = document.getElementById('playPauseBtn');
 const progressBar = document.getElementById('progressBar');
 const progressBarFill = document.getElementById('progressBarFill');
 const currentTimeSpan = document.getElementById('currentTime');
@@ -23,7 +23,6 @@ let titleGlitchInterval;
 const characters = "01345789_=-+[]{}|";
 let glitchInterval;
 
-// Re-enabled Web Audio API global variables
 let audioContext;
 let analyser;
 let audioSource;
@@ -31,7 +30,6 @@ let dataArray;
 let currentTiltTransform = '';
 let animationFrameId = null;
 
-// Variable to store the last non-zero volume
 let lastKnownVolume = 0.5; // Initialize with a default volume
 
 function getRandomChar(charSet) {
@@ -65,7 +63,8 @@ function applyTitleGlitch() {
 
 glitchInterval = setInterval(applyBodyTextReadableGlitch, 250);
 
-// isPlaying will still track "audible" or "silent"
+// isPlaying will now solely track if music was intended to be audible (started by 'Click to Enter')
+// It does NOT track the mute state via volume controls.
 let isPlaying = false; 
 
 function formatTime(seconds) {
@@ -92,8 +91,7 @@ musicTrack.addEventListener('loadedmetadata', () => {
     musicTrack.volume = lastKnownVolume;
     volumeBar.value = lastKnownVolume;
     updateVolumeIcon();
-    // NEW: Update the playPauseBtn icon on load based on initial volume
-    updatePlayPauseBtnIcon();
+    // REMOVED: updatePlayPauseBtnIcon();
 });
 
 musicTrack.addEventListener('canplaythrough', () => {
@@ -116,73 +114,14 @@ musicTrack.addEventListener('error', (e) => {
     console.error("Audio error event:", e.target.error.code, e.target.error.message);
 });
 
-// NEW FUNCTION: Updates the play/pause button icon based on musicTrack volume
-function updatePlayPauseBtnIcon() {
-    if (musicTrack.volume === 0) {
-        playPauseBtn.querySelector('.material-icons').textContent = 'volume_off';
-    } else if (musicTrack.volume < 0.5) {
-        playPauseBtn.querySelector('.material-icons').textContent = 'volume_down';
-    } else {
-        playPauseBtn.querySelector('.material-icons').textContent = 'volume_up';
-    }
-}
-
-// Play/Pause button click handler - MODIFIED FOR VOLUME CONTROL & ICON
-playPauseBtn.addEventListener('click', async () => {
-    if (isPlaying) { // isPlaying means currently audible
-        console.log("Button clicked: isPlaying is TRUE. Muting audio.");
-        lastKnownVolume = musicTrack.volume; // Save current volume before muting
-        musicTrack.volume = 0; // Set volume to 0
-        volumeBar.value = 0; // Update volume slider
-        updateVolumeIcon(); // Update main volume icon
-        updatePlayPauseBtnIcon(); // NEW: Update the playPauseBtn icon to volume_off
-
-        if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
-            animationFrameId = null;
-        }
-
-        if (audioContext && audioContext.state === 'running') {
-            await audioContext.suspend();
-            console.log("AudioContext suspended.");
-        }
-
-    } else { // isPlaying means currently silent/muted
-        console.log("Button clicked: isPlaying is FALSE. Unmuting audio.");
-        try {
-            await initAudioAnalysis();
-            
-            musicTrack.play(); 
-
-            musicTrack.volume = lastKnownVolume; // Restore previous volume
-            volumeBar.value = lastKnownVolume; // Update volume slider
-            updateVolumeIcon(); // Update main volume icon
-            updatePlayPauseBtnIcon(); // NEW: Update the playPauseBtn icon to volume_up/down
-            
-            if (!animationFrameId && musicTrack.volume > 0) {
-                animateBass();
-            }
-
-            console.log("musicTrack.play() Promise RESOLVED.");
-        } catch (e) {
-            console.error("musicTrack.play() Promise REJECTED:", e);
-            // On rejection, ensure icons and state reflect no sound
-            musicTrack.volume = 0; // Ensure it's muted if play failed
-            volumeBar.value = 0;
-            updateVolumeIcon();
-            updatePlayPauseBtnIcon(); // NEW: Ensure playPauseBtn icon is volume_off
-            isPlaying = false;
-        }
-    }
-    isPlaying = !isPlaying; // Toggle isPlaying based on audible state
-    console.log("isPlaying toggled to:", isPlaying);
-});
+// REMOVED: function updatePlayPauseBtnIcon() { ... }
+// REMOVED: playPauseBtn.addEventListener('click', async () => { ... });
 
 progressBar.addEventListener('input', () => {
     musicTrack.currentTime = progressBar.value;
 });
 
-// Volume bar functionality - MODIFIED to save lastKnownVolume
+// Volume bar functionality (unchanged, still controls volume and bass animation)
 volumeBar.addEventListener('input', () => {
     const newVolume = parseFloat(volumeBar.value);
     musicTrack.volume = newVolume;
@@ -190,14 +129,13 @@ volumeBar.addEventListener('input', () => {
         lastKnownVolume = newVolume; // Only update lastKnownVolume if not muting
     }
     updateVolumeIcon();
-    updatePlayPauseBtnIcon(); // NEW: Update the playPauseBtn icon
     // Control bass animation based on direct volume change
     if (musicTrack.volume === 0) {
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
-    } else if (!animationFrameId && isPlaying) { // Only restart if isPlaying (meaning the "mute" button was pressed to unmute)
+    } else if (!animationFrameId && isPlaying) { // Only restart if music was started by 'Click to Enter'
         animateBass();
     }
 });
@@ -212,7 +150,7 @@ function updateVolumeIcon() {
     }
 }
 
-// Mute/unmute on volume icon click - MODIFIED to save lastKnownVolume
+// Mute/unmute on volume icon click (unchanged, still controls volume and bass animation)
 volumeIcon.addEventListener('click', () => {
     if (musicTrack.volume > 0) {
         lastKnownVolume = musicTrack.volume; // Save current volume before muting
@@ -223,31 +161,28 @@ volumeIcon.addEventListener('click', () => {
         volumeBar.value = lastKnownVolume;
     }
     updateVolumeIcon();
-    updatePlayPauseBtnIcon(); // NEW: Update the playPauseBtn icon
     // Control bass animation based on direct volume change
     if (musicTrack.volume === 0) {
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
-    } else if (!animationFrameId && isPlaying) {
+    } else if (!animationFrameId && isPlaying) { // Only restart if music was started by 'Click to Enter'
         animateBass();
     }
 });
 
 musicTrack.addEventListener('canplay', () => {
-    // Set initial volume when audio can play
     musicTrack.volume = lastKnownVolume;
     volumeBar.value = lastKnownVolume;
     updateVolumeIcon();
-    updatePlayPauseBtnIcon(); // NEW: Set initial icon for playPauseBtn
 });
 
 const entryScreen = document.getElementById('entryScreen');
 const enterSiteBtn = document.getElementById('enterSiteBtn');
 const siteContent = document.getElementById('siteContent');
 
-// Entry button click handler - MODIFIED FOR VOLUME & BASS START
+// Entry button click handler (simplified, no playPauseBtn icon update)
 enterSiteBtn.addEventListener('click', async () => {
     entryScreen.classList.add('fade-out');
     entryScreen.addEventListener('transitionend', async () => {
@@ -255,10 +190,9 @@ enterSiteBtn.addEventListener('click', async () => {
         siteContent.classList.add('active');
 
         try {
-            await initAudioAnalysis(); // Initialize and ensure context is running
+            await initAudioAnalysis();
             musicTrack.play();
-            isPlaying = true;
-            updatePlayPauseBtnIcon(); // NEW: Set the playPauseBtn icon after starting
+            isPlaying = true; // Music is now intended to be playing
             titleGlitchInterval = setInterval(applyTitleGlitch, 300);
 
             if (!animationFrameId && musicTrack.volume > 0) {
@@ -272,11 +206,10 @@ enterSiteBtn.addEventListener('click', async () => {
             console.log("Initial musicTrack.play() Promise RESOLVED after entry.");
         } catch (error) {
             console.error("Initial musicTrack.play() Promise REJECTED after entry:", error);
-            isPlaying = false;
-            musicTrack.volume = 0; // Ensure mute if play failed
+            isPlaying = false; // If play fails, assume not playing
+            musicTrack.volume = 0; // Ensure muted if play failed
             volumeBar.value = 0;
             updateVolumeIcon();
-            updatePlayPauseBtnIcon(); // NEW: Set icon to volume_off if play failed
         }
 
     }, { once: true });
@@ -308,7 +241,7 @@ if (mainContentWrapper) {
     });
 }
 
-// Web Audio API Section (Re-enabled)
+// Web Audio API Section
 async function initAudioAnalysis() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -331,8 +264,8 @@ async function initAudioAnalysis() {
 
 // animateBass function - MODIFIED to stop if volume is zero
 function animateBass() {
-    // Stop animation if music is effectively 'paused' by volume zero or not considered playing
-    if (musicTrack.volume === 0 || !isPlaying) { 
+    // Stop animation if music is effectively 'muted' by volume zero, or not playing
+    if (musicTrack.volume === 0 || !isPlaying) {
         animationFrameId = null;
         console.log("Stopping bass animation due to zero volume or not playing.");
         return;
