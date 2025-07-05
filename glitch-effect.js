@@ -14,8 +14,12 @@ const albumArt = document.getElementById('albumArt'); // Assuming album art elem
 const songTitleElement = document.querySelector('.song-title');
 const songArtistElement = document.querySelector('.song-artist');
 
-// Save the original text to revert to or glitch from
+// Save the original text for the main glitch effect
 const originalGlitchText = glitchTextElement.textContent;
+
+// NEW: Save the original title text for the tab glitch effect
+const originalTitleText = document.title;
+let titleGlitchInterval; // Variable to store the title glitch interval ID
 
 // Define the "good" characters for the glitch effect.
 // These are chosen to be visually consistent in width for pixel fonts
@@ -44,13 +48,27 @@ function applyBodyTextReadableGlitch() {
     glitchTextElement.textContent = glitchedText;
 }
 
-// Function to revert the "Dopameme" text to its original state
+// NEW: Function to apply glitch to the browser tab title
+function applyTitleGlitch() {
+    let glitchedTitle = '';
+    for (let i = 0; i < originalTitleText.length; i++) {
+        if (Math.random() < 0.3) { // 30% chance to glitch a character in the title
+            glitchedTitle += getRandomChar(characters);
+        } else {
+            glitchedTitle += originalTitleText[i];
+        }
+    }
+    document.title = glitchedTitle;
+}
+
+
+// Function to revert the "Dopameme" text to its original state (not currently used)
 function revertBodyTextToOriginal() {
     glitchTextElement.textContent = originalGlitchText;
 }
 
-// Start the glitch effect
-glitchInterval = setInterval(applyBodyTextReadableGlitch, 150); // Glitch every 150ms
+// Start the main glitch effect (slower now)
+glitchInterval = setInterval(applyBodyTextReadableGlitch, 250); // Increased from 150ms to 250ms
 
 // --- Audio Player Logic ---
 
@@ -158,6 +176,9 @@ enterSiteBtn.addEventListener('click', () => {
         musicTrack.play();
         isPlaying = true;
         playPauseBtn.querySelector('.material-icons').textContent = 'pause';
+
+        // NEW: Start the tab title glitch
+        titleGlitchInterval = setInterval(applyTitleGlitch, 300); // Glitch the tab title every 300ms
 
         // Set initial total time and progress bar max on entry, just in case
         if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
