@@ -134,7 +134,7 @@ body {
     /* Tilt/Bass properties now applied to the wrapper */
     transform-style: preserve-3d;
     transform: rotateX(0deg) rotateY(0deg); /* Initial state */
-    transition: transform 0.1s ease-out; /* Smooth transition for tilt */
+    transition: transform 0.15s ease-out; /* Adjusted: was 0.1s, for slightly smoother movement */
     will-change: transform; /* Performance optimization */
 
     /* Shrink the overall box */
@@ -194,13 +194,13 @@ body {
 
 .song-info {
     color: #e0e0e0;
-    font-size: 0.85em; /* Adjusted: was 0.9em */
+    font-size: 0.75em; /* Adjusted: was 0.85em, now even smaller for overall song info */
 }
 
 .song-info .song-title {
     font-weight: bold;
-    font-size: 1em; /* Adjusted: was 1.1em */
-    margin-bottom: 4px; /* Adjusted: was 5px */
+    font-size: 0.9em; /* Adjusted: was 1em, now smaller for the title specifically */
+    margin-bottom: 3px; /* Adjusted: was 4px */
     color: #78B159; /* Pepe Green */
 }
 
@@ -277,7 +277,8 @@ body {
 
 /* Styles for the slider track (the non-filled part) for Firefox */
 #progressBar::-moz-range-track {
-    background: transparent; 
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
 }
 
 .playback-buttons {
