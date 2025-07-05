@@ -70,7 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         analyser.getByteFrequencyData(dataArray);
         const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-        const scale = 1 + (volume / 512);
+
+        const maxScale = 1.05; // Max bounce scale to avoid overflow
+        const scale = Math.min(1 + (volume / 512), maxScale);
 
         const bounceTargets = [
             elements.glitchText,
@@ -202,6 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentX = 0, currentY = 0;
     const tiltTarget = elements.siteContent;
 
+    const maxTilt = 5; // max degrees of tilt
+
     document.addEventListener('mousemove', e => {
         const rect = tiltTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
@@ -214,6 +218,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTilt() {
         currentX += (tiltX - currentX) * 0.07;
         currentY += (tiltY - currentY) * 0.07;
+
+        // Clamp tilt to maxTilt degrees
+        currentX = Math.max(-maxTilt, Math.min(maxTilt, currentX));
+        currentY = Math.max(-maxTilt, Math.min(maxTilt, currentY));
+
         tiltTarget.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
         requestAnimationFrame(updateTilt);
     }
