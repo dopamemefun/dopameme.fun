@@ -158,9 +158,7 @@ body {
 }
 
 /* Styling for the container that holds your main title and intro text */
-.header-section {
-    text-align: center;
-}
+.header-section { display: flex; flex-direction: column; /* Stack the heading, image, and button vertically */ align-items: center; /* Center items horizontally */ }
 
 
 /* --- Custom Audio Player Styling --- */
