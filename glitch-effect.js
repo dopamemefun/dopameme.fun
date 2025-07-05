@@ -30,51 +30,47 @@ document.addEventListener('DOMContentLoaded', () => {
     function glitchText() {
         let result = '';
         for (let i = 0; i < state.originalGlitchText.length; i++) {
-            result += Math.random() < 0.3 ? 
-                "\\/|_[]"[Math.floor(Math.random() * 5)] : 
+            result += Math.random() < 0.3 ?
+                "\\/|_[]"[Math.floor(Math.random() * 5)] :
                 state.originalGlitchText[i];
         }
         elements.glitchText.textContent = result;
     }
-
     function glitchTitle() {
         let result = '';
         for (let i = 0; i < state.originalTitle.length; i++) {
-            result += Math.random() < 0.2 ? "_[]"[Math.floor(Math.random() * 3)] : state.originalTitle[i];
+            result += Math.random() < 0.2 ?
+                "_[]"[Math.floor(Math.random() * 3)] :
+                state.originalTitle[i];
         }
         document.title = result || state.originalTitle;
     }
-
     setInterval(glitchText, 250);
     setInterval(glitchTitle, 400);
 
     let audioCtx, sourceNode, analyser, dataArray;
-
     function initAudioAnalyzer() {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         sourceNode = audioCtx.createMediaElementSource(elements.musicTrack);
         analyser = audioCtx.createAnalyser();
-
         analyser.fftSize = 256;
         const bufferLength = analyser.frequencyBinCount;
         dataArray = new Uint8Array(bufferLength);
-
         sourceNode.connect(analyser);
         analyser.connect(audioCtx.destination);
-
         animateBounceByVolume();
     }
 
+    let tiltX = 0, tiltY = 0;
+    let currentX = 0, currentY = 0;
+
     function animateBounceByVolume() {
         if (!analyser) return;
-
         analyser.getByteFrequencyData(dataArray);
         const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+        const scale = 1 + (volume / 512);
 
-        const maxScaleIncrease = 0.05;
-        const scale = 1 + Math.min(volume / 1024, maxScaleIncrease);
-
-        const bounceTargets = [
+        [
             elements.glitchText,
             elements.headerImage,
             elements.joinBtn,
@@ -83,12 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.songTitle,
             elements.albumArt,
             elements.mainWrapper
-        ];
-
-        bounceTargets.forEach(el => {
-            if (el) {
-                el.style.transform = `scale(${scale})`;
-            }
+        ].forEach(el => {
+            if (el) el.style.transform = `scale(${scale})`;
         });
 
         requestAnimationFrame(animateBounceByVolume);
@@ -100,12 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 await elements.musicTrack.play();
                 state.isPlaying = true;
                 elements.playPauseBtn.textContent = 'pause';
+                startBounceEffect();
                 if (!audioCtx) initAudioAnalyzer();
             } else {
                 elements.musicTrack.pause();
                 state.isPlaying = false;
                 elements.playPauseBtn.textContent = 'play_arrow';
-
+                stopBounceEffect();
                 document.querySelectorAll('.main-content-wrapper *').forEach(el => {
                     el.style.transform = '';
                 });
@@ -115,23 +108,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function formatTime(seconds) {
-        if (isNaN(seconds)) return "00:00";
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    function formatTime(sec) {
+        if (isNaN(sec)) return "00:00";
+        const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
     }
 
     elements.musicTrack.addEventListener('timeupdate', () => {
-        const current = elements.musicTrack.currentTime;
-        const duration = elements.musicTrack.duration || state.duration;
-        
-        elements.currentTime.textContent = formatTime(current);
-        elements.totalTime.textContent = formatTime(duration);
-        
-        if (duration) {
-            elements.progressFill.style.width = `${(current / duration) * 100}%`;
-            elements.progressBar.value = current;
+        const cur = elements.musicTrack.currentTime,
+              dur = elements.musicTrack.duration || state.duration;
+        elements.currentTime.textContent = formatTime(cur);
+        elements.totalTime.textContent = formatTime(dur);
+        if (dur) {
+            elements.progressFill.style.width = `${(cur/dur)*100}%`;
+            elements.progressBar.value = cur;
         }
     });
 
@@ -142,61 +132,67 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elements.volumeBar.addEventListener('input', () => {
-        const vol = elements.volumeBar.value / 100;
-        elements.musicTrack.volume = vol;
-        state.lastVolume = vol;
-        updateVolumeIcon(vol);
-        updateVolumeFill(vol);
+        const v = +elements.volumeBar.value;
+        elements.musicTrack.volume = v;
+        state.lastVolume = v;
+        elements.volumeIcon.textContent = v === 0 ? 'volume_off' : v < 0.5 ? 'volume_down' : 'volume_up';
     });
 
-    function updateVolumeIcon(volume) {
-        if (volume === 0) {
-            elements.volumeIcon.textContent = 'volume_off';
-        } else if (volume < 0.5) {
-            elements.volumeIcon.textContent = 'volume_down';
-        } else {
-            elements.volumeIcon.textContent = 'volume_up';
+    document.getElementById('enterSiteBtn').addEventListener('click', async () => {
+        const entry = document.getElementById('entryScreen');
+        try {
+            await elements.musicTrack.play();
+            state.isPlaying = true;
+            elements.playPauseBtn.textContent = 'pause';
+            startBounceEffect();
+            initAudioAnalyzer();
+        } catch(e) {
+            console.warn('Autoplay failed:', e);
         }
-    }
+        entry.classList.add('fade-out');
+        entry.addEventListener('transitionend', () => {
+            entry.style.display = 'none';
+            elements.siteContent.classList.add('active');
+        }, { once: true });
+    });
 
-    function updateVolumeFill(volume) {
-        const fill = document.querySelector('.volume-fill');
-        if (fill) fill.style.width = `${volume * 100}%`;
-    }
-
-    // Initial volume setup
     elements.musicTrack.volume = state.lastVolume;
-    elements.volumeBar.value = state.lastVolume * 100;
-    updateVolumeIcon(state.lastVolume);
-    updateVolumeFill(state.lastVolume);
+    elements.volumeBar.value     = state.lastVolume;
+    elements.totalTime.textContent = "00:00";
+    elements.progressBar.value     = 0;
+    elements.progressFill.style.width = "0%";
+    elements.timeDisplay.style.fontFeatureSettings = '"tnum"';
 
-    elements.progressBar.addEventListener('input', () => {
-        elements.musicTrack.currentTime = elements.progressBar.value;
-    });
-
-    // Entry screen logic
-    const entryScreen = document.querySelector('.entry-screen');
-    const enterBtn = document.getElementById('enterSiteBtn');
-    enterBtn.addEventListener('click', () => {
-        entryScreen.classList.add('fade-out');
-        elements.siteContent.classList.add('active');
-    });
-
-    // Tilt effect
-    const tiltTarget = elements.mainWrapper;
-    let tiltX = 0, tiltY = 0;
-    document.addEventListener('mousemove', e => {
-        const rect = tiltTarget.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        tiltX = ((e.clientY - centerY) / 100) * 5;
-        tiltY = (-(e.clientX - centerX) / 100) * 5;
-    });
-
-    function applyTilt() {
-        elements.mainWrapper.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-        requestAnimationFrame(applyTilt);
+    function startBounceEffect() {
+        [
+            elements.glitchText,
+            elements.headerImage,
+            elements.joinBtn,
+            elements.playPauseBtn,
+            elements.audioPlayer,
+            elements.songTitle,
+            elements.albumArt,
+            elements.timeDisplay,
+            elements.mainWrapper
+        ].forEach(el => el && el.classList.add('bounce-active'));
     }
-    applyTilt();
+
+    function stopBounceEffect() {
+        document.querySelectorAll('.bounce-active').forEach(el => el.classList.remove('bounce-active'));
+    }
+
+    const tiltTarget = elements.siteContent;
+    document.addEventListener('mousemove', e => {
+        const r = tiltTarget.getBoundingClientRect();
+        const cx = r.left + r.width/2, cy = r.top + r.height/2;
+        tiltX =  (e.clientY - cy)/40;
+        tiltY = -(e.clientX - cx)/40;
+    });
+
+    (function updateTilt() {
+        currentX += (tiltX - currentX)*0.07;
+        currentY += (tiltY - currentY)*0.07;
+        tiltTarget.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+        requestAnimationFrame(updateTilt);
+    })();
 });
