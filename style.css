@@ -402,3 +402,20 @@ body {
 audio {
     display: none;
 }
+
+/* ========== LINKVERTISE BUTTON STYLES ========== */
+.linkvertise-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-family: 'Press Start 2P', sans-serif;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.linkvertise-btn:hover {
+    background-color: #111;
+}
