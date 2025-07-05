@@ -1,450 +1,48 @@
-/* General body styles for a dark theme and centering content */
-body {
-    background-color: #1a1a1a;
-    color: #e0e0e0;
-    font-family: 'Arial', sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 20px;
-    box-sizing: border-box;
-    background-image: url('background.gif');
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    perspective: 1000px;
-    cursor: url('custom-cursor.png'), auto;
-}
-
-/* Entry Screen Styling */
-.entry-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 1;
-    transition: opacity 0.5s ease-out;
-    filter: none;
-}
-
-.entry-screen.fade-out {
-    opacity: 0;
-    pointer-events: none;
-}
-
-#enterSiteBtn {
-    background-color: #78B159;
-    color: #1a1a1a;
-    border: none;
-    padding: 20px 40px;
-    border-radius: 10px;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 1.5em;
-    cursor: pointer;
-    box-shadow: 0 0 20px rgba(120, 177, 89, 0.7);
-    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-#enterSiteBtn .material-icons {
-    font-size: 1.5em;
-}
-
-#enterSiteBtn:hover {
-    background-color: #6C9B4E;
-    transform: scale(1.02);
-    box-shadow: 0 0 30px rgba(120, 177, 89, 0.9);
-}
-
-#enterSiteBtn:active {
-    transform: scale(0.98);
-}
-
-/* Main site content */
-#siteContent {
-    width: 100%;
-    height: 100%; 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    filter: blur(5px);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: filter 1s ease-out, opacity 0.5s ease-out, visibility 0s linear 0.5s;
-}
-
-#siteContent.active {
-    filter: blur(0px);
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transition: filter 1s ease-out, opacity 0.5s ease-out, visibility 0s linear;
-}
-
-/* Main content wrapper */
-.main-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    background-color: rgba(0, 0, 0, 0.7);
-    border-radius: 15px;
-    box-shadow: 0 0 25px rgba(120, 177, 89, 0.5), 0 0 50px rgba(120, 177, 89, 0.2);
-    padding: 20px 30px;
-    transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(0deg);
-    transition: transform 0.15s ease-out;
-    will-change: transform;
-    max-width: 550px;
-    width: 95%;
-}
-
-/* Glitch text effects */
-@keyframes glitch-anim {
-    0% { text-shadow: 0.05em 0 0 #00fffc, -0.05em -0.025em 0 #fc00ff; }
-    14% { text-shadow: 0.05em 0 0 #00fffc, -0.05em -0.025em 0 #fc00ff; }
-    15% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.025em 0 #fc00ff; }
-    49% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.025em 0 #fc00ff; }
-    50% { text-shadow: 0.025em 0.05em 0 #00fffc, 0.05em 0 0 #fc00ff; }
-    99% { text-shadow: 0.025em 0.05em 0 #00fffc, 0.05em 0 0 #fc00ff; }
-    100% { text-shadow: -0.025em 0 0 #00fffc, -0.025em -0.025em 0 #fc00ff; }
-}
-
-#glitchText {
-    font-family: 'Press Start 2P', cursive;
-    font-size: 2em;
-    font-weight: bold;
-    color: #78B159;
-    text-shadow: 0 0 5px #78B159, 0 0 10px #78B159, 0 0 15px rgba(120, 177, 89, 0.5);
-    white-space: nowrap;
-    animation: glitch-anim 2s infinite;
-}
-
-/* Header section */
-.header-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#customHeaderImage {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 20px auto;
-    filter: drop-shadow(0 0 10px #78B159) drop-shadow(0 0 20px #78B159);
-}
-
-/* Join Now button */
-#joinNowBtn {
-    background-color: #7289DA;
-    color: #ffffff;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 8px;
-    font-family: 'Press Start 2P', cursive;
-    font-size: 1.1em;
-    cursor: pointer;
-    box-shadow: 0 0 15px rgba(114, 137, 218, 0.7);
-    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 20px;
-}
-
-#joinNowBtn .material-icons {
-    font-size: 1.1em;
-}
-
-#joinNowBtn:hover {
-    background-color: #677BC4;
-    transform: scale(1.02);
-    box-shadow: 0 0 25px rgba(114, 137, 218, 0.9);
-}
-
-#joinNowBtn:active {
-    transform: scale(0.98);
-}
-
-#joinNowLink {
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    display: inline-block;
-}
-
-/* Audio player styles */
-.audio-player-container {
-    display: flex; 
-    width: 100%;
-    max-width: 450px;
-    align-items: center; 
-    gap: 15px;
-    background-color: rgba(0, 0, 0, 0.5); 
-    padding: 12px;
-    border-radius: 8px;
-}
-
-.player-visuals {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-shrink: 0; 
-}
-
-#albumArt {
-    width: 70px;
-    height: 70px;
-    border-radius: 8px; 
-    object-fit: cover; 
-    box-shadow: 0 0 10px rgba(120, 177, 89, 0.3);
-}
-
-.song-info {
-    color: #e0e0e0;
-    font-size: 0.75em;
-}
-
-.song-info .song-title {
-    font-weight: bold;
-    font-size: 0.9em;
-    margin-bottom: 3px;
-    color: #78B159;
-    display: inline-block;
-}
-
-.song-info .song-artist {
-    color: #a0a0a0; 
-}
-
-.player-controls {
-    flex-grow: 1; 
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.time-display {
-    font-size: 0.8em;
-    color: #a0a0a0;
-    text-align: right;
-    min-width: 120px;
-    font-feature-settings: "tnum";
-}
-
-.progress-bar-container {
-    position: relative;
-    width: 100%;
-    height: 8px; 
-    background-color: rgba(255, 255, 255, 0.1); 
-    border-radius: 5px;
-    overflow: hidden; 
-}
-
-#progressBarFill {
-    height: 100%;
-    width: 0%; 
-    background-color: #78B159;
-    border-radius: 5px;
-    transition: width 0.1s linear; 
-    transform-origin: left center;
-}
-
-#progressBar {
-    position: absolute; 
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    -webkit-appearance: none; 
-    appearance: none;
-    background: transparent; 
-    cursor: grab;
-    z-index: 2; 
-}
-
-#progressBar::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    background: #78B159;
-    border-radius: 50%; 
-    cursor: grab;
-    box-shadow: 0 0 5px rgba(120, 177, 89, 0.5);
-    margin-top: -5px;
-}
-
-#progressBar::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    background: #78B159;
-    border-radius: 50%;
-    cursor: grab;
-    box-shadow: 0 0 5px rgba(120, 177, 89, 0.5);
-}
-
-#progressBar::-moz-range-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-.playback-buttons {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 15px;
-}
-
-#playPauseBtn {
-    background-color: #78B159;
-    color: #1a1a1a; 
-    border: none;
-    border-radius: 50%; 
-    width: 40px; 
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    font-size: 24px; 
-    box-shadow: 0 0 10px rgba(120, 177, 89, 0.6);
-    transition: background-color 0.2s, transform 0.1s;
-    flex-shrink: 0;
-}
-
-#playPauseBtn:hover {
-    background-color: #6C9B4E;
-    transform: scale(1.05); 
-}
-
-#playPauseBtn:active {
-    transform: scale(0.95); 
-}
-
-.volume-control {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100px;
-    flex-shrink: 0;
-}
-
-#volumeIcon {
-    font-size: 20px;
-    color: #78B159;
-    cursor: pointer;
-}
-
-#volumeBar {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    outline: none;
-    cursor: grab;
-    transition: background 0.2s;
-    transform-origin: left center;
-}
-
-#volumeBar::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    background: #78B159;
-    border-radius: 50%; 
-    cursor: grab;
-    box-shadow: 0 0 5px rgba(120, 177, 89, 0.5);
-    margin-top: -5px;
-}
-
-#volumeBar::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    background: #78B159;
-    border-radius: 50%;
-    cursor: grab;
-    box-shadow: 0 0 5px rgba(120, 177, 89, 0.5);
-}
-
-#volumeBar::-moz-range-track {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-}
-
-/* Loading states */
-.loading-track {
-    position: relative;
-    color: transparent !important;
-    background: linear-gradient(90deg, #333, #555, #333);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 3px;
-}
-
-@keyframes loading {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-}
-
 /* ====================== */
-/* BOUNCE EFFECTS - FIXED */
+/* BOUNCE EFFECTS - FINAL FIXED VERSION */
 /* ====================== */
-@keyframes universal-bounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
+
+/* Safe bounce for visual elements only */
+@keyframes safe-element-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
-@keyframes bounce-horizontal {
-  0%, 100% { transform: scaleX(1); }
-  50% { transform: scaleX(1.03); }
-}
-
+/* Elements that should bounce */
 .bounce-active {
-  animation: universal-bounce 0.5s infinite;
-  transform-origin: center;
+  animation: safe-element-bounce 0.5s infinite;
   display: inline-block;
-  will-change: transform;
 }
 
-.bounce-active.block-preserve {
-  display: block;
-}
-
-/* Slider-specific fixes */
-.progress-bar-container.bounce-active,
-.volume-control.bounce-active {
+/* Elements that should NEVER bounce */
+.progress-bar-container,
+.volume-control,
+#progressBar,
+#volumeBar,
+#progressBarFill,
+#progressBar::-webkit-slider-thumb,
+#volumeBar::-webkit-slider-thumb {
   animation: none !important;
   transform: none !important;
 }
 
+/* Special visual feedback for progress */
 #progressBarFill.bounce-active {
-  animation: bounce-horizontal 0.5s infinite;
+  animation: fill-pulse 0.5s infinite;
 }
 
-#volumeBar.bounce-active {
-  animation: bounce-horizontal 0.5s infinite;
+@keyframes fill-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 5px #78B159; }
+  50% { opacity: 0.9; box-shadow: 0 0 8px #78B159; }
 }
 
-/* Hide the native audio controls */
-audio {
-    display: none;
+/* Block elements that need to maintain layout */
+.bounce-active.block-preserve {
+  display: block;
+}
+
+/* Time display protection */
+.time-display {
+  min-width: 120px;
+  font-feature-settings: "tnum";
 }
