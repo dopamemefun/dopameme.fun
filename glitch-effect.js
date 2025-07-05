@@ -216,4 +216,5 @@ document.getElementById('enterSiteBtn')?.addEventListener('click', async () => {
     } catch (err) {
       console.error("Autoplay failed:", err);
     }
-  }, { once: t
+  }, { once: true });
+});
