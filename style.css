@@ -256,19 +256,19 @@ body {
 #progressBar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 15px; 
-    height: 15px; 
+    width: 20px; /* Adjusted: Increased from 15px */
+    height: 20px; /* Adjusted: Increased from 15px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%; 
     cursor: grab;
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5); /* Pepe Green glow */
-    margin-top: -3.5px; 
+    margin-top: -6px; /* Adjusted: to center the larger thumb on 8px track */
     background-color: #78B159; /* Pepe Green */
 }
 
 #progressBar::-moz-range-thumb {
-    width: 15px;
-    height: 15px;
+    width: 20px; /* Adjusted: Increased from 15px */
+    height: 20px; /* Adjusted: Increased from 15px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%;
     cursor: grab;
@@ -351,19 +351,19 @@ body {
 #volumeBar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px; /* Size of the thumb */
-    height: 14px;
+    width: 20px; /* Adjusted: Increased from 14px */
+    height: 20px; /* Adjusted: Increased from 14px */
     background: #78B159; /* Pepe Green */
-    border-radius: 50%; /* Circular thumb */
+    border-radius: 50%; 
     cursor: grab;
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5); /* Pepe Green glow */
-    margin-top: -4px; /* Adjust to center vertically */
+    margin-top: -7px; /* Adjusted: to center the larger thumb on 6px track */
     transition: background-color 0.2s;
 }
 
 #volumeBar::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
+    width: 20px; /* Adjusted: Increased from 14px */
+    height: 20px; /* Adjusted: Increased from 14px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%;
     cursor: grab;
@@ -421,6 +421,14 @@ body {
 
 #joinNowBtn:active {
     transform: scale(0.98);
+}
+
+/* NEW: Style for the Join Now link wrapper to remove underline */
+#joinNowLink {
+    text-decoration: none; /* Removes the underline */
+    border: none; /* Ensures no default border from the anchor */
+    cursor: pointer; /* Ensures the cursor remains a pointer */
+    display: inline-block; /* Allows margins/padding if needed for the link itself */
 }
 
 
