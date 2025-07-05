@@ -1,4 +1,4 @@
-// glitch-effect.js - WITH UNIVERSAL IN-PLACE BOUNCE
+// glitch-effect.js - WITH UNIVERSAL IN-PLACE BOUNCE (FIXED VERSION)
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const elements = {
@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
         siteContent: document.getElementById('siteContent'),
         headerImage: document.getElementById('customHeaderImage'),
         joinBtn: document.getElementById('joinNowBtn'),
-        audioPlayer: document.querySelector('.audio-player-container')
+        audioPlayer: document.querySelector('.audio-player-container'),
+        timeDisplay: document.querySelector('.time-display'),
+        progressContainer: document.querySelector('.progress-bar-container'),
+        volumeControl: document.querySelector('.volume-control')
     };
 
     // State
@@ -52,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchTitle, 400);
 
     // ======================
-    // UNIVERSAL BOUNCE SYSTEM
+    // UNIVERSAL BOUNCE SYSTEM (FIXED)
     // ======================
     const bounceElements = [
         elements.glitchText,
@@ -62,29 +65,38 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.audioPlayer,
         document.querySelector('.song-title'),
         document.querySelector('.album-art'),
-        document.querySelector('.progress-bar-container'),
-        document.querySelector('.volume-control')
+        elements.progressContainer,
+        elements.volumeControl
     ];
 
     function startBounceEffect() {
+        // Set transform origins first
+        elements.volumeBar.style.transformOrigin = 'left center';
+        elements.progressBar.style.transformOrigin = 'left center';
+        
         bounceElements.forEach(el => {
             if (el) {
                 el.classList.add('bounce-active');
-                // Preserve block layout where needed
+                // Special handling for specific elements
+                if (el === elements.volumeControl || el === elements.progressContainer) {
+                    el.style.transformOrigin = 'left center';
+                }
                 if (getComputedStyle(el).display === 'block') {
                     el.classList.add('block-preserve');
                 }
             }
         });
         
-        // Special case for main wrapper to prevent layout issues
         elements.mainWrapper.classList.add('bounce-active', 'block-preserve');
+        elements.timeDisplay.style.minWidth = elements.timeDisplay.offsetWidth + 'px';
     }
 
     function stopBounceEffect() {
         document.querySelectorAll('.bounce-active').forEach(el => {
             el.classList.remove('bounce-active', 'block-preserve');
+            el.style.transformOrigin = '';
         });
+        elements.timeDisplay.style.minWidth = '';
     }
 
     // ======================
@@ -109,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ======================
-    // TIME DISPLAY
+    // TIME DISPLAY (FIXED)
     // ======================
     function formatTime(seconds) {
         if (isNaN(seconds)) return "00:00";
@@ -119,23 +131,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     elements.musicTrack.addEventListener('timeupdate', () => {
-        elements.currentTime.textContent = formatTime(elements.musicTrack.currentTime);
-        if (state.duration) {
-            elements.progressFill.style.width = `${(elements.musicTrack.currentTime / state.duration) * 100}%`;
-            elements.progressBar.value = elements.musicTrack.currentTime;
+        const current = elements.musicTrack.currentTime;
+        const duration = elements.musicTrack.duration || state.duration;
+        
+        elements.currentTime.textContent = formatTime(current);
+        elements.totalTime.textContent = formatTime(duration);
+        
+        if (duration) {
+            elements.progressFill.style.width = `${(current / duration) * 100}%`;
+            elements.progressBar.value = current;
         }
     });
 
     elements.musicTrack.addEventListener('loadedmetadata', () => {
-        if (elements.musicTrack.duration !== Infinity) {
-            state.duration = elements.musicTrack.duration;
-            elements.totalTime.textContent = formatTime(state.duration);
-            elements.progressBar.max = state.duration;
-        }
+        state.duration = elements.musicTrack.duration;
+        elements.progressBar.max = state.duration;
+        elements.totalTime.textContent = formatTime(state.duration);
     });
 
     // ======================
-    // VOLUME CONTROL
+    // VOLUME CONTROL (FIXED)
     // ======================
     elements.volumeBar.addEventListener('input', () => {
         const vol = parseFloat(elements.volumeBar.value);
@@ -162,4 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.totalTime.textContent = "00:00";
     elements.progressBar.value = 0;
     elements.progressFill.style.width = "0%";
+    
+    // Pre-set time display width
+    elements.timeDisplay.style.fontFeatureSettings = '"tnum"';
 });
