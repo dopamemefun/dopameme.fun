@@ -256,19 +256,19 @@ body {
 #progressBar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px; /* Adjusted: Increased from 15px */
-    height: 20px; /* Adjusted: Increased from 15px */
+    width: 20px; /* ADJUSTED: Increased from 15px */
+    height: 20px; /* ADJUSTED: Increased from 15px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%; 
     cursor: grab;
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5); /* Pepe Green glow */
-    margin-top: -6px; /* Adjusted: to center the larger thumb on 8px track */
+    margin-top: -6px; /* ADJUSTED: to center the larger thumb on 8px track */
     background-color: #78B159; /* Pepe Green */
 }
 
 #progressBar::-moz-range-thumb {
-    width: 20px; /* Adjusted: Increased from 15px */
-    height: 20px; /* Adjusted: Increased from 15px */
+    width: 20px; /* ADJUSTED: Increased from 15px */
+    height: 20px; /* ADJUSTED: Increased from 15px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%;
     cursor: grab;
@@ -351,19 +351,19 @@ body {
 #volumeBar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px; /* Adjusted: Increased from 14px */
-    height: 20px; /* Adjusted: Increased from 14px */
+    width: 20px; /* ADJUSTED: Increased from 14px */
+    height: 20px; /* ADJUSTED: Increased from 14px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%; 
     cursor: grab;
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5); /* Pepe Green glow */
-    margin-top: -7px; /* Adjusted: to center the larger thumb on 6px track */
+    margin-top: -7px; /* ADJUSTED: to center the larger thumb on 6px track */
     transition: background-color 0.2s;
 }
 
 #volumeBar::-moz-range-thumb {
-    width: 20px; /* Adjusted: Increased from 14px */
-    height: 20px; /* Adjusted: Increased from 14px */
+    width: 20px; /* ADJUSTED: Increased from 14px */
+    height: 20px; /* ADJUSTED: Increased from 14px */
     background: #78B159; /* Pepe Green */
     border-radius: 50%;
     cursor: grab;
