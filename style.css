@@ -153,6 +153,8 @@ body {
         0 0 5px #00ffcc,
         0 0 10px #00ffcc,
         0 0 15px rgba(0, 255, 204, 0.5);
+    /* NEW: Prevent text from wrapping to prevent layout shifts */
+    white-space: nowrap; 
 }
 
 /* Styling for the container that holds your main title and intro text */
@@ -300,7 +302,6 @@ body {
     transition: background-color 0.2s, transform 0.1s;
     flex-shrink: 0; /* Prevent button from shrinking */
 
-    /* REMOVED: visibility: hidden; opacity: 0; pointer-events: none; */
     visibility: visible; /* Ensure it's visible */
     opacity: 1;        /* Ensure it's fully opaque */
     pointer-events: auto; /* Ensure it's clickable */
