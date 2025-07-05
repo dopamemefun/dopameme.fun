@@ -1,6 +1,4 @@
-// glitch-effect.js - PERFECT IN-PLACE BOUNCE (FINAL VERSION)
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements - UPDATED WITH NEW SELECTORS
     const elements = {
         glitchText: document.getElementById('glitchText'),
         musicTrack: document.getElementById('musicTrack'),
@@ -17,13 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
         joinBtn: document.getElementById('joinNowBtn'),
         audioPlayer: document.querySelector('.audio-player-container'),
         songTitle: document.querySelector('.song-title'),
-        albumArt: document.querySelector('.album-art'),
-        progressContainer: document.querySelector('.progress-bar-container'),
-        volumeControl: document.querySelector('.volume-control'),
+        albumArt: document.getElementById('albumArt'),
         timeDisplay: document.querySelector('.time-display')
     };
 
-    // State
     const state = {
         isPlaying: false,
         lastVolume: 0.5,
@@ -32,9 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         duration: 0
     };
 
-    // ======================
-    // GLITCH EFFECT
-    // ======================
+    // ====================== GLITCH EFFECT ======================
     function glitchText() {
         let result = '';
         for (let i = 0; i < state.originalGlitchText.length; i++) {
@@ -56,12 +49,32 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchText, 250);
     setInterval(glitchTitle, 400);
 
-    // ======================
-    // PERFECT BOUNCE SYSTEM
-    // ======================
-    function startBounceEffect() {
-        // Standard bounce elements
-        const regularBounceElements = [
+    // ====================== AUDIO ANALYZER ======================
+    let audioCtx, sourceNode, analyser, dataArray;
+
+    function initAudioAnalyzer() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        sourceNode = audioCtx.createMediaElementSource(elements.musicTrack);
+        analyser = audioCtx.createAnalyser();
+
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+
+        sourceNode.connect(analyser);
+        analyser.connect(audioCtx.destination);
+
+        animateBounceByVolume();
+    }
+
+    function animateBounceByVolume() {
+        if (!analyser) return;
+
+        analyser.getByteFrequencyData(dataArray);
+        const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+        const scale = 1 + (volume / 512); // Adjust for bounce sensitivity
+
+        const bounceTargets = [
             elements.glitchText,
             elements.headerImage,
             elements.joinBtn,
@@ -69,42 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.audioPlayer,
             elements.songTitle,
             elements.albumArt,
-            elements.timeDisplay,
             elements.mainWrapper
         ];
 
-        regularBounceElements.forEach(el => {
-            if (el) {
-                el.classList.add('bounce-active');
-                if (getComputedStyle(el).display === 'block') {
-                    el.classList.add('block-preserve');
-                }
-            }
+        bounceTargets.forEach(el => {
+            if (el) el.style.transform = `scale(${scale})`;
         });
 
-        // Special horizontal bounce for sliders
-        if (elements.progressFill) {
-            elements.progressFill.classList.add('bounce-active');
-            elements.progressFill.style.transformOrigin = 'left center';
-        }
-        
-        if (elements.volumeBar) {
-            elements.volumeBar.classList.add('bounce-active');
-            elements.volumeBar.style.transformOrigin = 'left center';
-        }
+        requestAnimationFrame(animateBounceByVolume);
     }
 
-    function stopBounceEffect() {
-        // Remove all bounce classes
-        document.querySelectorAll('.bounce-active, .block-preserve').forEach(el => {
-            el.classList.remove('bounce-active', 'block-preserve');
-            el.style.transformOrigin = '';
-        });
-    }
-
-    // ======================
-    // PLAY/PAUSE CONTROL
-    // ======================
+    // ====================== PLAY/PAUSE CONTROL ======================
     elements.playPauseBtn.addEventListener('click', async () => {
         try {
             if (elements.musicTrack.paused) {
@@ -112,20 +100,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.isPlaying = true;
                 elements.playPauseBtn.textContent = 'pause';
                 startBounceEffect();
+                if (!audioCtx) initAudioAnalyzer();
             } else {
                 elements.musicTrack.pause();
                 state.isPlaying = false;
                 elements.playPauseBtn.textContent = 'play_arrow';
                 stopBounceEffect();
+                document.querySelectorAll('.main-content-wrapper *').forEach(el => {
+                    el.style.transform = '';
+                });
             }
         } catch (err) {
             console.error("Playback error:", err);
         }
     });
 
-    // ======================
-    // TIME DISPLAY (FIXED)
-    // ======================
+    // ====================== TIME DISPLAY ======================
     function formatTime(seconds) {
         if (isNaN(seconds)) return "00:00";
         const mins = Math.floor(seconds / 60);
@@ -152,9 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.totalTime.textContent = formatTime(state.duration);
     });
 
-    // ======================
-    // VOLUME CONTROL (FIXED)
-    // ======================
+    // ====================== VOLUME CONTROL ======================
     elements.volumeBar.addEventListener('input', () => {
         const vol = parseFloat(elements.volumeBar.value);
         elements.musicTrack.volume = vol;
@@ -162,37 +150,56 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.volumeIcon.textContent = vol === 0 ? 'volume_off' : vol < 0.5 ? 'volume_down' : 'volume_up';
     });
 
-    // ======================
-    // ENTRY ANIMATION
-    // ======================
-  document.getElementById('enterSiteBtn').addEventListener('click', async () => {
-    const entryScreen = document.getElementById('entryScreen');
-    
-    // Try to autoplay the music
-    try {
-        await elements.musicTrack.play();
-        state.isPlaying = true;
-        elements.playPauseBtn.textContent = 'pause';
-        startBounceEffect();
-    } catch (err) {
-        console.warn('Autoplay failed:', err);
-    }
+    // ====================== ENTRY BUTTON ======================
+    document.getElementById('enterSiteBtn').addEventListener('click', async () => {
+        const entryScreen = document.getElementById('entryScreen');
 
-    // Transition to the site content
-    entryScreen.classList.add('fade-out');
-    entryScreen.addEventListener('transitionend', () => {
-        entryScreen.style.display = 'none';
-        elements.siteContent.classList.add('active');
-    }, { once: true });
-});
+        try {
+            await elements.musicTrack.play();
+            state.isPlaying = true;
+            elements.playPauseBtn.textContent = 'pause';
+            startBounceEffect();
+            initAudioAnalyzer();
+        } catch (err) {
+            console.warn('Autoplay failed:', err);
+        }
 
-    // Initialize
+        entryScreen.classList.add('fade-out');
+        entryScreen.addEventListener('transitionend', () => {
+            entryScreen.style.display = 'none';
+            elements.siteContent.classList.add('active');
+        }, { once: true });
+    });
+
+    // ====================== INITIAL SETUP ======================
     elements.musicTrack.volume = state.lastVolume;
     elements.volumeBar.value = state.lastVolume;
     elements.totalTime.textContent = "00:00";
     elements.progressBar.value = 0;
     elements.progressFill.style.width = "0%";
-    
-    // Ensure time display has consistent width
     elements.timeDisplay.style.fontFeatureSettings = '"tnum"';
+
+    // ====================== STATIC BOUNCE MODE (fallback) ======================
+    function startBounceEffect() {
+        const bounceEls = [
+            elements.glitchText,
+            elements.headerImage,
+            elements.joinBtn,
+            elements.playPauseBtn,
+            elements.audioPlayer,
+            elements.songTitle,
+            elements.albumArt,
+            elements.timeDisplay,
+            elements.mainWrapper
+        ];
+        bounceEls.forEach(el => {
+            if (el) el.classList.add('bounce-active');
+        });
+    }
+
+    function stopBounceEffect() {
+        document.querySelectorAll('.bounce-active').forEach(el => {
+            el.classList.remove('bounce-active');
+        });
+    }
 });
