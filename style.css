@@ -400,18 +400,6 @@ body {
     will-change: transform;
 }
 
-@keyframes bounceInPlace {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-5px) scale(1.05); }
-}
-
-.music-player {
-  position: fixed; /* or absolute, depending on layout */
-  bottom: 20px; /* Example: Lock to bottom */
-  left: 20px;
-  animation: bounceInPlace 1s infinite;
-}
-
 
 @keyframes loading {
     0% { background-position: 200% 0; }
