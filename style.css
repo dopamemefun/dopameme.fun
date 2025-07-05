@@ -146,7 +146,7 @@ body {
 /* Style for the glitching text (Dopameme) */
 #glitchText {
     font-family: 'Press Start 2P', cursive;
-    font-size: 2.5em; /* Adjusted: was 3em */
+    font-size: 2em; /* Adjusted: was 2.5em, making it smaller */
     font-weight: bold;
     color: #78B159; /* Pepe Green */
     text-shadow:
