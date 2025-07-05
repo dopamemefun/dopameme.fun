@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
         duration: 0
     };
 
-    // ====================== GLITCH EFFECT ======================
     function glitchText() {
         let result = '';
         for (let i = 0; i < state.originalGlitchText.length; i++) {
@@ -49,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchText, 250);
     setInterval(glitchTitle, 400);
 
-    // ====================== AUDIO ANALYZER ======================
     let audioCtx, sourceNode, analyser, dataArray;
 
     function initAudioAnalyzer() {
@@ -66,10 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         animateBounceByVolume();
     }
-
-    // Tilt variables
-    let tiltX = 0, tiltY = 0;
-    let currentX = 0, currentY = 0;
 
     function animateBounceByVolume() {
         if (!analyser) return;
@@ -91,14 +85,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         bounceTargets.forEach(el => {
             if (el) {
-                el.style.transform = `scale(${scale}) rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+                el.style.transform = `scale(${scale})`;
             }
         });
 
         requestAnimationFrame(animateBounceByVolume);
     }
 
-    // ====================== PLAY/PAUSE CONTROL ======================
     elements.playPauseBtn.addEventListener('click', async () => {
         try {
             if (elements.musicTrack.paused) {
@@ -121,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ====================== TIME DISPLAY ======================
     function formatTime(seconds) {
         if (isNaN(seconds)) return "00:00";
         const mins = Math.floor(seconds / 60);
@@ -148,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.totalTime.textContent = formatTime(state.duration);
     });
 
-    // ====================== VOLUME CONTROL ======================
     elements.volumeBar.addEventListener('input', () => {
         const vol = parseFloat(elements.volumeBar.value);
         elements.musicTrack.volume = vol;
@@ -156,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.volumeIcon.textContent = vol === 0 ? 'volume_off' : vol < 0.5 ? 'volume_down' : 'volume_up';
     });
 
-    // ====================== ENTRY BUTTON ======================
     document.getElementById('enterSiteBtn').addEventListener('click', async () => {
         const entryScreen = document.getElementById('entryScreen');
 
@@ -177,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { once: true });
     });
 
-    // ====================== INITIAL SETUP ======================
     elements.musicTrack.volume = state.lastVolume;
     elements.volumeBar.value = state.lastVolume;
     elements.totalTime.textContent = "00:00";
@@ -185,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.progressFill.style.width = "0%";
     elements.timeDisplay.style.fontFeatureSettings = '"tnum"';
 
-    // ====================== STATIC BOUNCE (Fallback) ======================
     function startBounceEffect() {
         const bounceEls = [
             elements.glitchText,
@@ -209,9 +197,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ====================== MOUSE-BASED TILT ======================
+    // ✅ TILT SYSTEM
+    let tiltX = 0, tiltY = 0;
+    let currentX = 0, currentY = 0;
+    const tiltTarget = elements.siteContent;
+
     document.addEventListener('mousemove', e => {
-        const rect = elements.mainWrapper.getBoundingClientRect();
+        const rect = tiltTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
 
@@ -222,8 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTilt() {
         currentX += (tiltX - currentX) * 0.07;
         currentY += (tiltY - currentY) * 0.07;
+        tiltTarget.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
         requestAnimationFrame(updateTilt);
     }
 
-    updateTilt(); // Start tilt loop
+    updateTilt();
 });
