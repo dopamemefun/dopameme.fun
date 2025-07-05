@@ -283,6 +283,7 @@ body {
     gap: 15px; /* Space between play/pause button and volume control */
 }
 
+/* RE-ENABLED AND STYLED: playPauseBtn */
 #playPauseBtn {
     background-color: #00ffcc; 
     color: #1a1a1a; 
@@ -299,11 +300,10 @@ body {
     transition: background-color 0.2s, transform 0.1s;
     flex-shrink: 0; /* Prevent button from shrinking */
 
-    /* NEW: Hide the play/pause button */
-    visibility: hidden; /* Makes it invisible but still takes up space */
-    opacity: 0;        /* Makes it fully transparent */
-    transition: visibility 0s 0.5s, opacity 0.5s linear; /* Hides after 0.5s, shows instantly */
-    pointer-events: none; /* Prevents interaction when hidden */
+    /* REMOVED: visibility: hidden; opacity: 0; pointer-events: none; */
+    visibility: visible; /* Ensure it's visible */
+    opacity: 1;        /* Ensure it's fully opaque */
+    pointer-events: auto; /* Ensure it's clickable */
 }
 
 #playPauseBtn:hover {
@@ -372,6 +372,7 @@ body {
     border-radius: 3px;
 }
 
+/* Styling for the custom header image */
 #customHeaderImage {
     max-width: 100%; /* Ensures it fits within its parent */
     height: auto;    /* Maintains aspect ratio */
@@ -385,9 +386,6 @@ body {
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 255, 192, 0.7); */
 }
-
-/* If the image needs to be positioned absolutely or have specific dimensions
-   within its container, adjust accordingly. */
 
 /* Hide the native audio controls */
 audio {
