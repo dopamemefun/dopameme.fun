@@ -1,220 +1,209 @@
-// glitch-effect.js - FINAL PERFECTED VERSION
-const glitchTextElement = document.getElementById('glitchText');
-const musicTrack = document.getElementById('musicTrack');
-const playPauseBtn = document.getElementById('playPauseBtn');
-const mainWrapper = document.querySelector('.main-content-wrapper');
+// glitch-effect.js - FINAL WORKING VERSION
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements
+    const elements = {
+        glitchText: document.getElementById('glitchText'),
+        musicTrack: document.getElementById('musicTrack'),
+        playPauseBtn: document.getElementById('playPauseBtn'),
+        progressBar: document.getElementById('progressBar'),
+        progressFill: document.getElementById('progressBarFill'),
+        currentTime: document.getElementById('currentTime'),
+        totalTime: document.getElementById('totalTime'),
+        volumeBar: document.getElementById('volumeBar'),
+        volumeIcon: document.getElementById('volumeIcon'),
+        mainWrapper: document.querySelector('.main-content-wrapper')
+    };
 
-// =============================================
-// CORE STATE (with performance optimizations)
-// =============================================
-const state = {
-  isPlaying: false,
-  audioContext: null,
-  analyser: null,
-  animationId: null,
-  currentTilt: '',
-  currentBass: '',
-  originalTitle: document.title,
-  originalGlitchText: glitchTextElement.textContent
-};
+    // State
+    const state = {
+        isPlaying: false,
+        lastVolume: 0.5,
+        audioContext: null,
+        analyser: null,
+        animationId: null,
+        tilt: { x: 0, y: 0 },
+        originalTitle: document.title,
+        originalGlitchText: elements.glitchText.textContent
+    };
 
-// =============================================
-// FIXED GLITCH EFFECTS (only on "Dopameme")
-// =============================================
-function applyTextGlitch() {
-  let glitched = '';
-  const original = state.originalGlitchText;
-  for (let i = 0; i < original.length; i++) {
-    glitched += Math.random() < 0.3 ? 
-      "01|/\\_[]{}"[Math.floor(Math.random() * 9)] : 
-      original[i];
-  }
-  glitchTextElement.textContent = glitched;
-}
-
-function applyTitleGlitch() {
-  let glitched = '';
-  for (let i = 0; i < state.originalTitle.length; i++) {
-    glitched += Math.random() < 0.2 ? 
-      "01|_[]"[Math.floor(Math.random() * 5)] : 
-      state.originalTitle[i];
-  }
-  document.title = glitched;
-}
-
-// Start glitch effects
-const glitchInterval = setInterval(applyTextGlitch, 200);
-const titleGlitchInterval = setInterval(applyTitleGlitch, 300);
-
-// =============================================
-// BUTTERY SMOOTH TILT EFFECT
-// =============================================
-let lastTiltUpdate = 0;
-const tiltSmoothing = 0.2; // Lower = smoother
-
-mainWrapper.addEventListener('mousemove', (e) => {
-  const now = performance.now();
-  if (now - lastTiltUpdate < 16) return; // Limit to ~60fps
-  lastTiltUpdate = now;
-
-  const rect = mainWrapper.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  
-  // Smoother interpolation
-  const targetRotateY = ((e.clientX - centerX) / (rect.width / 2)) * -8;
-  const targetRotateX = ((e.clientY - centerY) / (rect.height / 2)) * 8;
-  
-  // Smoothing
-  state.currentTilt = `perspective(1000px) 
-    rotateX(${targetRotateX * tiltSmoothing}deg) 
-    rotateY(${targetRotateY * tiltSmoothing}deg)`;
-    
-  applyCombinedEffects();
-});
-
-mainWrapper.addEventListener('mouseleave', () => {
-  state.currentTilt = 'perspective(1000px) rotateX(0) rotateY(0)';
-  applyCombinedEffects();
-});
-
-// =============================================
-// PERFECTED BASS VISUALIZATION
-// =============================================
-function startBassAnalysis() {
-  if (!state.analyser) return;
-  
-  const dataArray = new Uint8Array(state.analyser.frequencyBinCount);
-  let lastBassUpdate = 0;
-
-  function analyze() {
-    const now = performance.now();
-    if (now - lastBassUpdate < 50) { // Limit bass updates
-      state.animationId = requestAnimationFrame(analyze);
-      return;
-    }
-    lastBassUpdate = now;
-
-    state.analyser.getByteFrequencyData(dataArray);
-    
-    // Calculate bass (low frequencies 0-100hz)
-    let bass = 0;
-    for (let i = 0; i < 5; i++) bass += dataArray[i];
-    bass /= 5;
-
-    // Apply effect only when bass is strong
-    if (bass > 40) {
-      const intensity = Math.min(bass / 255, 1);
-      const shakeX = (Math.random() - 0.5) * 3 * intensity;
-      const shakeY = (Math.random() - 0.5) * 3 * intensity;
-      state.currentBass = `translate(${shakeX}px, ${shakeY}px)`;
-    } else {
-      state.currentBass = '';
+    // ======================
+    // GLITCH EFFECT (Dopameme only)
+    // ======================
+    function glitchText() {
+        let result = '';
+        for (let i = 0; i < state.originalGlitchText.length; i++) {
+            result += Math.random() < 0.3 ? 
+                "\\/|_[]"[Math.floor(Math.random() * 5)] : 
+                state.originalGlitchText[i];
+        }
+        elements.glitchText.textContent = result;
     }
 
-    applyCombinedEffects();
-    state.animationId = requestAnimationFrame(analyze);
-  }
+    function glitchTitle() {
+        let result = '';
+        for (let i = 0; i < state.originalTitle.length; i++) {
+            result += Math.random() < 0.2 ? "_[]"[Math.floor(Math.random() * 3)] : state.originalTitle[i];
+        }
+        document.title = result;
+    }
 
-  state.animationId = requestAnimationFrame(analyze);
-}
+    // Start glitch intervals
+    setInterval(glitchText, 250);
+    setInterval(glitchTitle, 400);
 
-// =============================================
-// EFFECTS COMBINER (optimized rendering)
-// =============================================
-function applyCombinedEffects() {
-  // Use will-change for optimized rendering
-  mainWrapper.style.willChange = 'transform';
-  mainWrapper.style.transform = `${state.currentTilt} ${state.currentBass}`;
-  
-  // Force synchronous layout update
-  void mainWrapper.offsetHeight;
-  
-  // Reset will-change after animation frame
-  requestAnimationFrame(() => {
-    mainWrapper.style.willChange = 'auto';
-  });
-}
+    // ======================
+    // SMOOTH TILT EFFECT
+    // ======================
+    function handleTilt(e) {
+        const rect = elements.mainWrapper.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        state.tilt.x = ((e.clientY - centerY) / (rect.height / 2)) * 5;
+        state.tilt.y = ((e.clientX - centerX) / (rect.width / 2)) * -5;
+        applyEffects();
+    }
 
-// =============================================
-// BULLETPROOF PLAY/PAUSE BUTTON
-// =============================================
-playPauseBtn.addEventListener('click', async (e) => {
-  e.stopPropagation();
-  
-  try {
-    if (musicTrack.paused) {
-      // Initialize audio context if needed
-      if (!state.audioContext) {
+    function resetTilt() {
+        state.tilt.x = 0;
+        state.tilt.y = 0;
+        applyEffects();
+    }
+
+    elements.mainWrapper.addEventListener('mousemove', handleTilt);
+    elements.mainWrapper.addEventListener('mouseleave', resetTilt);
+
+    // ======================
+    // AUDIO SYSTEM (FIXED)
+    // ======================
+    function initAudio() {
         state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         state.analyser = state.audioContext.createAnalyser();
-        state.analyser.fftSize = 256;
-        const source = state.audioContext.createMediaElementSource(musicTrack);
+        state.analyser.fftSize = 64;
+        const source = state.audioContext.createMediaElementSource(elements.musicTrack);
         source.connect(state.analyser);
         state.analyser.connect(state.audioContext.destination);
-      }
-      
-      // Handle suspended state
-      if (state.audioContext.state === 'suspended') {
-        await state.audioContext.resume();
-      }
-      
-      await musicTrack.play();
-      state.isPlaying = true;
-      playPauseBtn.textContent = 'pause';
-      startBassAnalysis();
-    } else {
-      musicTrack.pause();
-      state.isPlaying = false;
-      playPauseBtn.textContent = 'play_arrow';
-      cancelAnimationFrame(state.animationId);
-      state.animationId = null;
-      state.currentBass = '';
-      applyCombinedEffects();
     }
-  } catch (err) {
-    console.error("Playback error:", err);
-    playPauseBtn.style.color = "#ff5555";
-    setTimeout(() => playPauseBtn.style.color = "", 500);
-  }
-});
 
-// =============================================
-// INITIALIZATION
-// =============================================
-// Set initial volume
-musicTrack.volume = 0.5;
-document.getElementById('volumeBar').value = 0.5;
+    // WORKING Play/Pause Button
+    elements.playPauseBtn.addEventListener('click', async () => {
+        try {
+            if (elements.musicTrack.paused) {
+                if (!state.audioContext) initAudio();
+                if (state.audioContext.state === 'suspended') await state.audioContext.resume();
+                await elements.musicTrack.play();
+                state.isPlaying = true;
+                elements.playPauseBtn.textContent = 'pause';
+                startBassAnalysis();
+            } else {
+                elements.musicTrack.pause();
+                state.isPlaying = false;
+                elements.playPauseBtn.textContent = 'play_arrow';
+                cancelAnimationFrame(state.animationId);
+            }
+        } catch (err) {
+            console.error("Playback error:", err);
+        }
+    });
 
-// Time display updates
-musicTrack.addEventListener('timeupdate', () => {
-  const current = document.getElementById('currentTime');
-  const progress = document.getElementById('progressBarFill');
-  current.textContent = formatTime(musicTrack.currentTime);
-  progress.style.width = `${(musicTrack.currentTime / musicTrack.duration) * 100}%`;
-});
+    // WORKING Volume Control
+    elements.volumeBar.addEventListener('input', () => {
+        const vol = parseFloat(elements.volumeBar.value);
+        elements.musicTrack.volume = vol;
+        state.lastVolume = vol;
+        elements.volumeIcon.textContent = vol === 0 ? 'volume_off' : vol < 0.5 ? 'volume_down' : 'volume_up';
+    });
 
-// Format time helper
-function formatTime(seconds) {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
+    elements.volumeIcon.addEventListener('click', () => {
+        if (elements.musicTrack.volume > 0) {
+            state.lastVolume = elements.musicTrack.volume;
+            elements.musicTrack.volume = 0;
+            elements.volumeBar.value = 0;
+            elements.volumeIcon.textContent = 'volume_off';
+        } else {
+            elements.musicTrack.volume = state.lastVolume;
+            elements.volumeBar.value = state.lastVolume;
+            elements.volumeIcon.textContent = state.lastVolume < 0.5 ? 'volume_down' : 'volume_up';
+        }
+    });
 
-// Entry animation
-document.getElementById('enterSiteBtn')?.addEventListener('click', async () => {
-  const entryScreen = document.getElementById('entryScreen');
-  entryScreen.classList.add('fade-out');
-  entryScreen.addEventListener('transitionend', async () => {
-    entryScreen.style.display = 'none';
-    document.getElementById('siteContent').classList.add('active');
-    try {
-      await musicTrack.play();
-      state.isPlaying = true;
-      playPauseBtn.textContent = 'pause';
-      startBassAnalysis();
-    } catch (err) {
-      console.error("Autoplay failed:", err);
+    // ======================
+    // BASS VISUALIZATION
+    // ======================
+    function startBassAnalysis() {
+        const data = new Uint8Array(state.analyser.frequencyBinCount);
+        
+        function analyze() {
+            state.analyser.getByteFrequencyData(data);
+            let bass = 0;
+            for (let i = 0; i < 5; i++) bass += data[i];
+            bass /= 5;
+            
+            if (bass > 30) {
+                const intensity = bass / 255;
+                const shakeX = (Math.random() - 0.5) * 2 * intensity * 3;
+                const shakeY = (Math.random() - 0.5) * 2 * intensity * 3;
+                state.bassEffect = `translate(${shakeX}px, ${shakeY}px)`;
+            } else {
+                state.bassEffect = '';
+            }
+            
+            applyEffects();
+            if (state.isPlaying) state.animationId = requestAnimationFrame(analyze);
+        }
+        
+        state.animationId = requestAnimationFrame(analyze);
     }
-  }, { once: true });
+
+    // ======================
+    // EFFECTS APPLICATION
+    // ======================
+    function applyEffects() {
+        elements.mainWrapper.style.transform = `
+            perspective(1000px)
+            rotateX(${state.tilt.x}deg)
+            rotateY(${state.tilt.y}deg)
+            ${state.bassEffect || ''}
+        `;
+    }
+
+    // ======================
+    // TIME DISPLAY (FIXED)
+    // ======================
+    function formatTime(sec) {
+        const mins = Math.floor(sec / 60);
+        const secs = Math.floor(sec % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    elements.musicTrack.addEventListener('timeupdate', () => {
+        elements.currentTime.textContent = formatTime(elements.musicTrack.currentTime);
+        elements.progressFill.style.width = `${(elements.musicTrack.currentTime / elements.musicTrack.duration) * 100}%`;
+        elements.progressBar.value = elements.musicTrack.currentTime;
+    });
+
+    elements.musicTrack.addEventListener('loadedmetadata', () => {
+        elements.totalTime.textContent = formatTime(elements.musicTrack.duration);
+        elements.progressBar.max = elements.musicTrack.duration;
+    });
+
+    elements.progressBar.addEventListener('input', () => {
+        elements.musicTrack.currentTime = elements.progressBar.value;
+    });
+
+    // ======================
+    // ENTRY ANIMATION
+    // ======================
+    document.getElementById('enterSiteBtn')?.addEventListener('click', async () => {
+        const entryScreen = document.getElementById('entryScreen');
+        entryScreen.classList.add('fade-out');
+        entryScreen.addEventListener('transitionend', () => {
+            entryScreen.style.display = 'none';
+            document.getElementById('siteContent').classList.add('active');
+        }, { once: true });
+    });
+
+    // Initialize
+    elements.musicTrack.volume = state.lastVolume;
+    elements.volumeBar.value = state.lastVolume;
 });
