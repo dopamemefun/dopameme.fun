@@ -1,4 +1,4 @@
-// glitch-effect.js - WITH BOUNCE EFFECT
+// glitch-effect.js - WITH SIMPLIFIED IN-PLACE BOUNCE
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const elements = {
@@ -12,7 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
         volumeBar: document.getElementById('volumeBar'),
         volumeIcon: document.getElementById('volumeIcon'),
         mainWrapper: document.querySelector('.main-content-wrapper'),
-        siteContent: document.getElementById('siteContent')
+        siteContent: document.getElementById('siteContent'),
+        songTitle: document.querySelector('.song-title'),
+        albumArt: document.querySelector('#albumArt')
     };
 
     // State
@@ -22,12 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
         audioContext: null,
         analyser: null,
         animationId: null,
-        tilt: { x: 0, y: 0 },
         originalTitle: "Dopameme.fun",
         originalGlitchText: "Dopameme",
-        duration: 0,
-        bassData: new Uint8Array(32),
-        bounceIntensity: 0
+        duration: 0
     };
 
     // ======================
@@ -55,56 +54,33 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchTitle, 400);
 
     // ======================
-    // AUDIO SYSTEM WITH BOUNCE
+    // AUDIO SYSTEM WITH SIMPLE BOUNCE
     // ======================
     function initAudio() {
         state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         state.analyser = state.audioContext.createAnalyser();
-        state.analyser.fftSize = 64;
+        state.analyser.fftSize = 32;
         const source = state.audioContext.createMediaElementSource(elements.musicTrack);
         source.connect(state.analyser);
         state.analyser.connect(state.audioContext.destination);
-        state.bassData = new Uint8Array(state.analyser.frequencyBinCount);
     }
 
     function startBounceEffect() {
-        if (state.animationId) cancelAnimationFrame(state.animationId);
-        
-        function analyzeAudio() {
-            state.analyser.getByteFrequencyData(state.bassData);
-            
-            // Calculate bass intensity (low frequencies)
-            let bass = 0;
-            for (let i = 0; i < 5; i++) bass += state.bassData[i];
-            state.bounceIntensity = bass / 255;
-            
-            applyBounceEffect();
-            state.animationId = requestAnimationFrame(analyzeAudio);
-        }
-        
-        analyzeAudio();
-    }
-
-    function applyBounceEffect() {
-        const bounce = state.bounceIntensity * 10; // Adjust multiplier for stronger/weaker effect
-        const bounceTransform = `translateY(${-bounce}px)`;
-        
-        // Apply to main wrapper and player elements
-        elements.mainWrapper.style.transform = `perspective(1000px) ${bounceTransform}`;
-        elements.audioPlayerContainer.style.transform = bounceTransform;
+        // Add bounce class to key elements
+        elements.songTitle.classList.add('beat-bounce');
+        elements.albumArt.classList.add('beat-bounce');
+        elements.playPauseBtn.classList.add('beat-bounce');
     }
 
     function stopBounceEffect() {
-        if (state.animationId) {
-            cancelAnimationFrame(state.animationId);
-            state.animationId = null;
-        }
-        elements.mainWrapper.style.transform = 'perspective(1000px)';
-        elements.audioPlayerContainer.style.transform = '';
+        // Remove bounce class
+        elements.songTitle.classList.remove('beat-bounce');
+        elements.albumArt.classList.remove('beat-bounce');
+        elements.playPauseBtn.classList.remove('beat-bounce');
     }
 
     // ======================
-    // PLAY/PAUSE WITH BOUNCE
+    // PLAY/PAUSE CONTROL
     // ======================
     elements.playPauseBtn.addEventListener('click', async () => {
         try {
@@ -127,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ======================
-    // TIME DISPLAY (FIXED)
+    // TIME DISPLAY
     // ======================
     function formatTime(seconds) {
         if (isNaN(seconds)) return "00:00";
@@ -180,7 +156,4 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.totalTime.textContent = "00:00";
     elements.progressBar.value = 0;
     elements.progressFill.style.width = "0%";
-
-    // Cache player container
-    elements.audioPlayerContainer = document.querySelector('.audio-player-container');
 });
