@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================
     // ENTRY ANIMATION
     // ======================
-    document.getElementById('enterSiteBtn')?.addEventListener('click', async () => {
+    document.getElementById('enterSiteBtn').addEventListener('click', async () => {
         const entryScreen = document.getElementById('entryScreen');
         entryScreen.classList.add('fade-out');
         entryScreen.addEventListener('transitionend', () => {
