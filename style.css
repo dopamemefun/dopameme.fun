@@ -44,10 +44,10 @@ body {
     background-color: #78B159;
     color: #1a1a1a;
     border: none;
-    padding: 20px 40px;
+    padding: 16px 32px;
     border-radius: 10px;
     font-family: 'Press Start 2P', cursive;
-    font-size: 1.5em;
+    font-size: 1.2em;
     cursor: pointer;
     box-shadow: 0 0 20px rgba(120, 177, 89, 0.7);
     transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
@@ -57,7 +57,7 @@ body {
 }
 
 #enterSiteBtn .material-icons {
-    font-size: 1.5em;
+    font-size: 1.2em;
 }
 
 #enterSiteBtn:hover {
@@ -82,8 +82,6 @@ body {
     visibility: hidden;
     pointer-events: none;
     transition: filter 1s ease-out, opacity 0.5s ease-out, visibility 0s linear 0.5s;
-
-    /* Smooth tilt effect added here */
     transform-style: preserve-3d;
     perspective: 1000px;
     will-change: transform;
@@ -107,7 +105,7 @@ body {
     box-shadow: 0 0 25px rgba(120, 177, 89, 0.5), 0 0 50px rgba(120, 177, 89, 0.2);
     padding: 20px 30px;
     transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(0deg) scale(0.9); /* scaled down to 90% */
+    transform: rotateX(0deg) rotateY(0deg) scale(0.9);
     transition: transform 0.15s ease-out;
     will-change: transform;
     max-width: 550px;
@@ -126,7 +124,7 @@ body {
 
 #glitchText {
     font-family: 'Press Start 2P', cursive;
-    font-size: 2em;
+    font-size: 1.6em;
     font-weight: bold;
     color: #78B159;
     text-shadow: 0 0 5px #78B159, 0 0 10px #78B159, 0 0 15px rgba(120, 177, 89, 0.5);
@@ -152,21 +150,21 @@ body {
     background-color: #7289DA;
     color: #ffffff;
     border: none;
-    padding: 12px 25px;
+    padding: 10px 20px;
     border-radius: 8px;
     font-family: 'Press Start 2P', cursive;
-    font-size: 1.1em;
+    font-size: 0.95em;
     cursor: pointer;
     box-shadow: 0 0 15px rgba(114, 137, 218, 0.7);
     transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-top: 20px;
+    margin-top: 15px;
 }
 
 #joinNowBtn .material-icons {
-    font-size: 1.1em;
+    font-size: 1em;
 }
 
 #joinNowBtn:hover {
@@ -189,11 +187,11 @@ body {
 .audio-player-container {
     display: flex; 
     width: 100%;
-    max-width: 450px;
+    max-width: 420px;
     align-items: center; 
-    gap: 15px;
+    gap: 12px;
     background-color: rgba(0, 0, 0, 0.5); 
-    padding: 12px;
+    padding: 10px;
     border-radius: 8px;
 }
 
@@ -205,8 +203,8 @@ body {
 }
 
 #albumArt {
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
     border-radius: 8px; 
     object-fit: cover; 
     box-shadow: 0 0 10px rgba(120, 177, 89, 0.3);
@@ -214,12 +212,12 @@ body {
 
 .song-info {
     color: #e0e0e0;
-    font-size: 0.75em;
+    font-size: 0.7em;
 }
 
 .song-info .song-title {
     font-weight: bold;
-    font-size: 0.9em;
+    font-size: 0.85em;
     margin-bottom: 3px;
     color: #78B159;
     display: inline-block;
@@ -237,18 +235,17 @@ body {
 }
 
 .time-display {
-    font-size: 0.8em;
+    font-size: 0.75em;
     color: #a0a0a0;
     text-align: right;
-    min-width: 120px;
+    min-width: 100px;
     font-feature-settings: "tnum";
 }
 
-/* ========== UPDATED SLIDER CODE STARTS HERE ========== */
 .progress-bar-container {
     position: relative;
     width: 100%;
-    height: 8px;
+    height: 6px;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 5px;
     overflow: hidden;
@@ -265,10 +262,10 @@ body {
 
 .progress-thumb {
     position: absolute;
-    right: -9px;
+    right: -7px;
     top: 50%;
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     background: #78B159;
     border-radius: 50%;
     transform: translateY(-50%);
@@ -280,7 +277,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    width: 100px;
+    width: 90px;
     position: relative;
 }
 
@@ -303,25 +300,15 @@ body {
 
 .volume-thumb {
     position: absolute;
-    right: -8px;
+    right: -7px;
     top: 50%;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     background: #78B159;
     border-radius: 50%;
     transform: translateY(-50%);
     box-shadow: 0 0 5px rgba(120, 177, 89, 0.5);
     z-index: 2;
-}
-
-@keyframes fill-bounce {
-    0%, 100% { transform: scaleX(1); }
-    50% { transform: scaleX(1.03); }
-}
-
-@keyframes thumb-bounce {
-    0%, 100% { transform: translateY(-50%) scale(1); }
-    50% { transform: translateY(-50%) scale(1.1); }
 }
 
 #progressBarFill.bounce-active,
@@ -335,7 +322,15 @@ body {
     animation: thumb-bounce 0.5s infinite;
 }
 
-/* ========== UPDATED SLIDER CODE ENDS HERE ========== */
+@keyframes fill-bounce {
+    0%, 100% { transform: scaleX(1); }
+    50% { transform: scaleX(1.03); }
+}
+
+@keyframes thumb-bounce {
+    0%, 100% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.1); }
+}
 
 .playback-buttons {
     display: flex;
@@ -349,13 +344,13 @@ body {
     color: #1a1a1a; 
     border: none;
     border-radius: 50%; 
-    width: 40px; 
-    height: 40px;
+    width: 36px; 
+    height: 36px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    font-size: 24px; 
+    font-size: 20px; 
     box-shadow: 0 0 10px rgba(120, 177, 89, 0.6);
     transition: background-color 0.2s, transform 0.1s;
     flex-shrink: 0;
