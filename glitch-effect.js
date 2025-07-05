@@ -1,4 +1,4 @@
-// glitch-effect.js - FULLY WORKING VERSION
+// glitch-effect.js - FINAL WORKING VERSION
 document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const elements = {
@@ -22,8 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
         analyser: null,
         animationId: null,
         tilt: { x: 0, y: 0 },
-        originalTitle: "Dopameme.fun", // Fixed tab title
-        originalGlitchText: "Dopameme" // Only glitch this text
+        originalTitle: "Dopameme.fun",
+        originalGlitchText: "Dopameme",
+        duration: 0
     };
 
     // ======================
@@ -44,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 0; i < state.originalTitle.length; i++) {
             result += Math.random() < 0.2 ? "_[]"[Math.floor(Math.random() * 3)] : state.originalTitle[i];
         }
-        document.title = result || state.originalTitle; // Fallback
+        document.title = result || state.originalTitle;
     }
 
     // Start glitch intervals
@@ -91,29 +92,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ======================
-    // TIME DISPLAY (FIXED)
+    // FIXED TIME DISPLAY SYSTEM
     // ======================
-    function formatTime(sec) {
-        if (isNaN(sec)) return "00:00";
-        const mins = Math.floor(sec / 60);
-        const secs = Math.floor(sec % 60);
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return "00:00";
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    elements.musicTrack.addEventListener('timeupdate', () => {
+    function updateTimeDisplay() {
         elements.currentTime.textContent = formatTime(elements.musicTrack.currentTime);
-        elements.progressFill.style.width = elements.musicTrack.duration ? 
-            `${(elements.musicTrack.currentTime / elements.musicTrack.duration) * 100}%` : '0%';
+        
+        // Update duration if valid
+        if (!isNaN(elements.musicTrack.duration) && elements.musicTrack.duration !== Infinity) {
+            state.duration = elements.musicTrack.duration;
+            elements.totalTime.textContent = formatTime(state.duration);
+            elements.progressBar.max = state.duration;
+        }
+        
+        elements.progressFill.style.width = state.duration ? 
+            `${(elements.musicTrack.currentTime / state.duration) * 100}%` : '0%';
         elements.progressBar.value = elements.musicTrack.currentTime;
-    });
+    }
 
+    // Handle metadata loading
     elements.musicTrack.addEventListener('loadedmetadata', () => {
-        elements.totalTime.textContent = formatTime(elements.musicTrack.duration);
-        elements.progressBar.max = elements.musicTrack.duration;
+        if (elements.musicTrack.duration !== Infinity) {
+            state.duration = elements.musicTrack.duration;
+            elements.totalTime.textContent = formatTime(state.duration);
+            elements.progressBar.max = state.duration;
+        }
     });
 
+    // Update time during playback
+    elements.musicTrack.addEventListener('timeupdate', updateTimeDisplay);
+
+    // Handle seeking
     elements.progressBar.addEventListener('input', () => {
-        if (elements.musicTrack.duration) {
+        if (state.duration) {
             elements.musicTrack.currentTime = elements.progressBar.value;
         }
     });
@@ -133,5 +150,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     elements.musicTrack.volume = state.lastVolume;
     elements.volumeBar.value = state.lastVolume;
-    elements.totalTime.textContent = "00:00"; // Initialize display
+    elements.totalTime.textContent = "00:00";
+    elements.progressBar.value = 0;
+    elements.progressFill.style.width = "0%";
+
+    // Extra duration check for problematic browsers
+    const checkDuration = setInterval(() => {
+        if (elements.musicTrack.duration && elements.musicTrack.duration !== Infinity) {
+            state.duration = elements.musicTrack.duration;
+            elements.totalTime.textContent = formatTime(state.duration);
+            elements.progressBar.max = state.duration;
+            clearInterval(checkDuration);
+        }
+    }, 500);
 });
