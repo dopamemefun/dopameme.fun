@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(glitchTitle, 400);
 
     let audioCtx, sourceNode, analyser, dataArray;
-    let bounceAnimationId = null;
 
     function initAudioAnalyzer() {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -62,6 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sourceNode.connect(analyser);
         analyser.connect(audioCtx.destination);
+
+        animateBounceByVolume();
     }
 
     function animateBounceByVolume() {
@@ -85,29 +86,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         bounceTargets.forEach(el => {
-            if (el) el.style.transform = `scale(${scale})`;
+            if (el) {
+                el.style.transform = `scale(${scale})`;
+            }
         });
 
-        bounceAnimationId = requestAnimationFrame(animateBounceByVolume);
-    }
-
-    function startBounceEffect() {
-        if (!bounceAnimationId) {
-            bounceAnimationId = requestAnimationFrame(animateBounceByVolume);
-        }
-    }
-
-    function stopBounceEffect() {
-        if (bounceAnimationId) {
-            cancelAnimationFrame(bounceAnimationId);
-            bounceAnimationId = null;
-        }
-
-        // Reset transform only if paused
-        const allEls = document.querySelectorAll('.main-content-wrapper *');
-        allEls.forEach(el => {
-            el.style.transform = '';
-        });
+        requestAnimationFrame(animateBounceByVolume);
     }
 
     elements.playPauseBtn.addEventListener('click', async () => {
@@ -117,12 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 state.isPlaying = true;
                 elements.playPauseBtn.textContent = 'pause';
                 if (!audioCtx) initAudioAnalyzer();
-                startBounceEffect();
             } else {
                 elements.musicTrack.pause();
                 state.isPlaying = false;
                 elements.playPauseBtn.textContent = 'play_arrow';
-                stopBounceEffect();
+
+                document.querySelectorAll('.main-content-wrapper *').forEach(el => {
+                    el.style.transform = '';
+                });
             }
         } catch (err) {
             console.error("Playback error:", err);
@@ -156,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elements.volumeBar.addEventListener('input', () => {
-        const vol = parseFloat(elements.volumeBar.value);
+        const vol = elements.volumeBar.value / 100;
         elements.musicTrack.volume = vol;
         state.lastVolume = vol;
         updateVolumeIcon(vol);
@@ -178,8 +164,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (fill) fill.style.width = `${volume * 100}%`;
     }
 
+    // Initial volume setup
     elements.musicTrack.volume = state.lastVolume;
-    elements.volumeBar.value = state.lastVolume;
+    elements.volumeBar.value = state.lastVolume * 100;
     updateVolumeIcon(state.lastVolume);
     updateVolumeFill(state.lastVolume);
 
@@ -187,22 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.musicTrack.currentTime = elements.progressBar.value;
     });
 
+    // Entry screen logic
     const entryScreen = document.querySelector('.entry-screen');
     const enterBtn = document.getElementById('enterSiteBtn');
-    enterBtn.addEventListener('click', async () => {
+    enterBtn.addEventListener('click', () => {
         entryScreen.classList.add('fade-out');
         elements.siteContent.classList.add('active');
-
-        try {
-            await elements.musicTrack.play();
-            state.isPlaying = true;
-            elements.playPauseBtn.textContent = 'pause';
-
-            if (!audioCtx) initAudioAnalyzer();
-            startBounceEffect();
-        } catch (err) {
-            console.error('Autoplay/playback failed:', err);
-        }
     });
 
     // Tilt effect
@@ -218,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function applyTilt() {
-        elements.mainWrapper.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(0.9)`;
+        elements.mainWrapper.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
         requestAnimationFrame(applyTilt);
     }
     applyTilt();
