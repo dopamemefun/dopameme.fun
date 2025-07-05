@@ -1,10 +1,6 @@
-// glitch-effect.js
-
-alert("Script is running!"); // Keep this for now to confirm execution
-
 const glitchTextElement = document.getElementById('glitchText');
 const musicTrack = document.getElementById('musicTrack');
-// REMOVED: const playPauseBtn = document.getElementById('playPauseBtn');
+const playPauseBtn = document.getElementById('playPauseBtn');
 const progressBar = document.getElementById('progressBar');
 const progressBarFill = document.getElementById('progressBarFill');
 const currentTimeSpan = document.getElementById('currentTime');
@@ -30,7 +26,7 @@ let dataArray;
 let currentTiltTransform = '';
 let animationFrameId = null;
 
-let lastKnownVolume = 0.5; // Initialize with a default volume
+let lastKnownVolume = 0.5;
 
 function getRandomChar(charSet) {
     const randomIndex = Math.floor(Math.random() * charSet.length);
@@ -63,14 +59,30 @@ function applyTitleGlitch() {
 
 glitchInterval = setInterval(applyBodyTextReadableGlitch, 250);
 
-// isPlaying will now solely track if music was intended to be audible (started by 'Click to Enter')
-// It does NOT track the mute state via volume controls.
-let isPlaying = false; 
+let isPlaying = false;
 
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+}
+
+function updatePlayPauseBtnIcon() {
+    if (musicTrack.paused) {
+        playPauseBtn.textContent = 'play_arrow';
+    } else {
+        playPauseBtn.textContent = 'pause';
+    }
+}
+
+function setLoadingState(isLoading) {
+    if (isLoading) {
+        songTitleElement.classList.add('loading-track');
+        songArtistElement.classList.add('loading-track');
+    } else {
+        songTitleElement.classList.remove('loading-track');
+        songArtistElement.classList.remove('loading-track');
+    }
 }
 
 musicTrack.addEventListener('timeupdate', () => {
@@ -80,7 +92,6 @@ musicTrack.addEventListener('timeupdate', () => {
 });
 
 musicTrack.addEventListener('loadedmetadata', () => {
-    console.log("Audio Loaded Metadata. Duration:", musicTrack.duration);
     if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
         totalTimeSpan.textContent = formatTime(musicTrack.duration);
         progressBar.max = musicTrack.duration;
@@ -91,11 +102,10 @@ musicTrack.addEventListener('loadedmetadata', () => {
     musicTrack.volume = lastKnownVolume;
     volumeBar.value = lastKnownVolume;
     updateVolumeIcon();
-    // REMOVED: updatePlayPauseBtnIcon();
+    updatePlayPauseBtnIcon();
 });
 
 musicTrack.addEventListener('canplaythrough', () => {
-    console.log("Audio can play through.");
     if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration) && musicTrack.duration > 0) {
         totalTimeSpan.textContent = formatTime(musicTrack.duration);
         progressBar.max = musicTrack.duration;
@@ -103,39 +113,59 @@ musicTrack.addEventListener('canplaythrough', () => {
 });
 
 musicTrack.addEventListener('play', () => {
-    console.log("Audio 'play' event fired. musicTrack.paused:", musicTrack.paused);
+    updatePlayPauseBtnIcon();
 });
 
 musicTrack.addEventListener('pause', () => {
-    console.log("Audio 'pause' event fired. musicTrack.paused:", musicTrack.paused);
+    updatePlayPauseBtnIcon();
 });
 
 musicTrack.addEventListener('error', (e) => {
-    console.error("Audio error event:", e.target.error.code, e.target.error.message);
+    console.error("Audio error:", e);
+    songTitleElement.textContent = "Error loading audio";
+    songTitleElement.style.color = "#ff5555";
+    setLoadingState(false);
 });
 
-// REMOVED: function updatePlayPauseBtnIcon() { ... }
-// REMOVED: playPauseBtn.addEventListener('click', async () => { ... });
+musicTrack.addEventListener('stalled', () => {
+    console.log("Audio stalled, attempting to recover...");
+    setLoadingState(true);
+    musicTrack.load();
+});
+
+musicTrack.addEventListener('waiting', () => setLoadingState(true));
+musicTrack.addEventListener('playing', () => setLoadingState(false));
+
+playPauseBtn.addEventListener('click', async () => {
+    try {
+        if (musicTrack.paused) {
+            await musicTrack.play();
+        } else {
+            musicTrack.pause();
+        }
+        updatePlayPauseBtnIcon();
+    } catch (error) {
+        console.error("Play/Pause error:", error);
+    }
+});
 
 progressBar.addEventListener('input', () => {
     musicTrack.currentTime = progressBar.value;
 });
 
-// Volume bar functionality (unchanged, still controls volume and bass animation)
 volumeBar.addEventListener('input', () => {
     const newVolume = parseFloat(volumeBar.value);
     musicTrack.volume = newVolume;
     if (newVolume > 0) {
-        lastKnownVolume = newVolume; // Only update lastKnownVolume if not muting
+        lastKnownVolume = newVolume;
     }
     updateVolumeIcon();
-    // Control bass animation based on direct volume change
     if (musicTrack.volume === 0) {
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
-    } else if (!animationFrameId && isPlaying) { // Only restart if music was started by 'Click to Enter'
+    } else if (!animationFrameId && isPlaying) {
         animateBass();
     }
 });
@@ -150,24 +180,22 @@ function updateVolumeIcon() {
     }
 }
 
-// Mute/unmute on volume icon click (unchanged, still controls volume and bass animation)
 volumeIcon.addEventListener('click', () => {
     if (musicTrack.volume > 0) {
-        lastKnownVolume = musicTrack.volume; // Save current volume before muting
+        lastKnownVolume = musicTrack.volume;
         musicTrack.volume = 0;
         volumeBar.value = 0;
     } else {
-        musicTrack.volume = lastKnownVolume; // Restore to the last non-zero level
+        musicTrack.volume = lastKnownVolume;
         volumeBar.value = lastKnownVolume;
     }
     updateVolumeIcon();
-    // Control bass animation based on direct volume change
     if (musicTrack.volume === 0) {
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
             animationFrameId = null;
         }
-    } else if (!animationFrameId && isPlaying) { // Only restart if music was started by 'Click to Enter'
+    } else if (!animationFrameId && isPlaying) {
         animateBass();
     }
 });
@@ -182,7 +210,6 @@ const entryScreen = document.getElementById('entryScreen');
 const enterSiteBtn = document.getElementById('enterSiteBtn');
 const siteContent = document.getElementById('siteContent');
 
-// Entry button click handler (simplified, no playPauseBtn icon update)
 enterSiteBtn.addEventListener('click', async () => {
     entryScreen.classList.add('fade-out');
     entryScreen.addEventListener('transitionend', async () => {
@@ -191,8 +218,8 @@ enterSiteBtn.addEventListener('click', async () => {
 
         try {
             await initAudioAnalysis();
-            musicTrack.play();
-            isPlaying = true; // Music is now intended to be playing
+            await musicTrack.play();
+            isPlaying = true;
             titleGlitchInterval = setInterval(applyTitleGlitch, 300);
 
             if (!animationFrameId && musicTrack.volume > 0) {
@@ -203,15 +230,13 @@ enterSiteBtn.addEventListener('click', async () => {
                 totalTimeSpan.textContent = formatTime(musicTrack.duration);
                 progressBar.max = musicTrack.duration;
             }
-            console.log("Initial musicTrack.play() Promise RESOLVED after entry.");
         } catch (error) {
-            console.error("Initial musicTrack.play() Promise REJECTED after entry:", error);
-            isPlaying = false; // If play fails, assume not playing
-            musicTrack.volume = 0; // Ensure muted if play failed
+            console.error("Initial play error:", error);
+            isPlaying = false;
+            musicTrack.volume = 0;
             volumeBar.value = 0;
             updateVolumeIcon();
         }
-
     }, { once: true });
 });
 
@@ -241,7 +266,6 @@ if (mainContentWrapper) {
     });
 }
 
-// Web Audio API Section
 async function initAudioAnalysis() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -255,25 +279,19 @@ async function initAudioAnalysis() {
     }
     
     if (audioContext.state === 'suspended') {
-        console.log("AudioContext state was suspended, resuming...");
         return audioContext.resume();
     }
-    console.log("AudioContext state is running or pending.");
     return Promise.resolve();
 }
 
-// animateBass function - MODIFIED to stop if volume is zero
 function animateBass() {
-    // Stop animation if music is effectively 'muted' by volume zero, or not playing
     if (musicTrack.volume === 0 || !isPlaying) {
         animationFrameId = null;
-        console.log("Stopping bass animation due to zero volume or not playing.");
         return;
     }
 
     if (!analyser || !dataArray || (audioContext && audioContext.state !== 'running')) {
         animationFrameId = null;
-        console.log("Stopping bass animation due to analyser/context issue.");
         return;
     }
     
@@ -292,11 +310,9 @@ function animateBass() {
     let bassTransform = '';
     if (bass > minBassThreshold) {
         const shakeAmount = (bass - minBassThreshold) * intensityFactor / 255;
-
         const translateX = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
         const translateY = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
         bassTransform += ` translateX(${translateX}px) translateY(${translateY}px)`;
-
         const scaleAmount = 1 + (shakeAmount * maxScaleIncrease);
         bassTransform += ` scale(${scaleAmount})`;
     } else {
@@ -304,6 +320,5 @@ function animateBass() {
     }
 
     mainContentWrapper.style.transform = currentTiltTransform + bassTransform;
-
     animationFrameId = requestAnimationFrame(animateBass);
 }
