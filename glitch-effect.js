@@ -1,8 +1,7 @@
-alert("Script is running!"); // Add this line
 // glitch-effect.js
 
-// Make sure these elements are correctly identified
-// ... rest of your code ...
+alert("Script is running!"); // Keep this for now
+
 const glitchTextElement = document.getElementById('glitchText');
 const musicTrack = document.getElementById('musicTrack');
 const playPauseBtn = document.getElementById('playPauseBtn');
@@ -17,24 +16,14 @@ const songTitleElement = document.querySelector('.song-title');
 const songArtistElement = document.querySelector('.song-artist');
 const customHeaderImage = document.getElementById('customHeaderImage');
 
-// Save the original text for the main glitch effect
 const originalGlitchText = glitchTextElement.textContent;
-
-// Save the original title text for the tab glitch effect
 const originalTitleText = document.title;
 let titleGlitchInterval;
 
 const characters = "01345789_=-+[]{}|";
-
 let glitchInterval;
 
-// COMMENTED OUT FOR DEBUGGING: Web Audio API global variables
-// let audioContext;
-// let analyser;
-// let audioSource;
-// let dataArray;
 let currentTiltTransform = '';
-// let animationFrameId = null; // COMMENTED OUT FOR DEBUGGING
 
 function getRandomChar(charSet) {
     const randomIndex = Math.floor(Math.random() * charSet.length);
@@ -82,6 +71,7 @@ musicTrack.addEventListener('timeupdate', () => {
 });
 
 musicTrack.addEventListener('loadedmetadata', () => {
+    console.log("Audio Loaded Metadata. Duration:", musicTrack.duration); // NEW LOG
     if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
         totalTimeSpan.textContent = formatTime(musicTrack.duration);
         progressBar.max = musicTrack.duration;
@@ -94,37 +84,44 @@ musicTrack.addEventListener('loadedmetadata', () => {
 });
 
 musicTrack.addEventListener('canplaythrough', () => {
+    console.log("Audio can play through."); // NEW LOG
     if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration) && musicTrack.duration > 0) {
         totalTimeSpan.textContent = formatTime(musicTrack.duration);
         progressBar.max = musicTrack.duration;
     }
 });
 
+// NEW LOGS FOR PLAY/PAUSE EVENTS
+musicTrack.addEventListener('play', () => {
+    console.log("Audio 'play' event fired. musicTrack.paused:", musicTrack.paused);
+});
+
+musicTrack.addEventListener('pause', () => {
+    console.log("Audio 'pause' event fired. musicTrack.paused:", musicTrack.paused);
+});
+
+musicTrack.addEventListener('error', (e) => {
+    console.error("Audio error event:", e.target.error.code, e.target.error.message); // CRITICAL NEW LOG
+});
+
 // Play/Pause button click handler - SIMPLIFIED FOR DEBUGGING
 playPauseBtn.addEventListener('click', () => {
     if (isPlaying) {
-        console.log("Attempting to PAUSE musicTrack (Web Audio API bypassed).");
+        console.log("Button clicked: isPlaying is TRUE. Attempting to PAUSE musicTrack.");
         musicTrack.pause();
         playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
-        // COMMENTED OUT FOR DEBUGGING: Web Audio API specific lines
-        // if (animationFrameId) { cancelAnimationFrame(animationFrameId); animationFrameId = null; }
-        // if (audioContext && audioContext.state === 'running') { audioContext.suspend(); }
     } else {
-        console.log("Attempting to PLAY musicTrack (Web Audio API bypassed).");
+        console.log("Button clicked: isPlaying is FALSE. Attempting to PLAY musicTrack.");
         musicTrack.play()
             .then(() => {
-                console.log("musicTrack.play() successful.");
+                console.log("musicTrack.play() Promise RESOLVED.");
             })
             .catch(e => {
-                console.error("musicTrack.play() failed:", e);
-                // If play fails, revert UI to play state
+                console.error("musicTrack.play() Promise REJECTED:", e);
                 playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
-                isPlaying = false; // Keep isPlaying false if play failed
+                isPlaying = false;
             });
         playPauseBtn.querySelector('.material-icons').textContent = 'pause';
-        // COMMENTED OUT FOR DEBUGGING: Web Audio API specific lines
-        // initAudioAnalysis();
-        // if (!animationFrameId) { animateBass(); }
     }
     isPlaying = !isPlaying;
     console.log("isPlaying toggled to:", isPlaying);
@@ -162,28 +159,23 @@ volumeIcon.addEventListener('click', () => {
 
 musicTrack.addEventListener('canplay', updateVolumeIcon);
 
-
 const entryScreen = document.getElementById('entryScreen');
 const enterSiteBtn = document.getElementById('enterSiteBtn');
 const siteContent = document.getElementById('siteContent');
 
 // Entry button click handler - SIMPLIFIED FOR DEBUGGING
-enterSiteBtn.addEventListener('click', () => { // Removed async
+enterSiteBtn.addEventListener('click', () => {
     entryScreen.classList.add('fade-out');
-    entryScreen.addEventListener('transitionend', () => { // Removed async
+    entryScreen.addEventListener('transitionend', () => {
         entryScreen.style.display = 'none';
         siteContent.classList.add('active');
 
-        // Play music immediately after entering
         musicTrack.play()
             .then(() => {
+                console.log("Initial musicTrack.play() Promise RESOLVED after entry."); // NEW LOG
                 isPlaying = true;
                 playPauseBtn.querySelector('.material-icons').textContent = 'pause';
                 titleGlitchInterval = setInterval(applyTitleGlitch, 300);
-
-                // COMMENTED OUT FOR DEBUGGING: Web Audio API specific lines
-                // initAudioAnalysis();
-                // if (!animationFrameId) { animateBass(); }
 
                 if (!isNaN(musicTrack.duration) && isFinite(musicTrack.duration)) {
                     totalTimeSpan.textContent = formatTime(musicTrack.duration);
@@ -191,14 +183,13 @@ enterSiteBtn.addEventListener('click', () => { // Removed async
                 }
             })
             .catch(error => {
-                console.error("Failed to play music after site entry:", error);
+                console.error("Initial musicTrack.play() Promise REJECTED after entry:", error); // NEW LOG
                 isPlaying = false;
                 playPauseBtn.querySelector('.material-icons').textContent = 'play_arrow';
             });
 
     }, { once: true });
 });
-
 
 const mainContentWrapper = document.querySelector('.main-content-wrapper');
 
@@ -226,61 +217,8 @@ if (mainContentWrapper) {
     });
 }
 
-// COMMENTED OUT FOR DEBUGGING: Entire Web Audio API Section
+// COMMENTED OUT FOR DEBUGGING: Entire Web Audio API Section (STILL COMMENTED OUT)
 /*
-async function initAudioAnalysis() {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-        audioSource = audioContext.createMediaElementSource(musicTrack);
-        audioSource.connect(analyser);
-        analyser.connect(audioContext.destination);
-    } 
-    
-    if (audioContext.state === 'suspended') {
-        return audioContext.resume();
-    }
-    return Promise.resolve();
-}
-
-
-function animateBass() {
-    if (!analyser || !dataArray || (audioContext && audioContext.state === 'suspended')) {
-        animationFrameId = null;
-        return;
-    }
-    
-    analyser.getByteFrequencyData(dataArray);
-    let bass = 0;
-    for (let i = 0; i < 10; i++) { 
-        bass += dataArray[i];
-    }
-    bass /= 10;
-
-    const intensityFactor = 0.8;
-    const minBassThreshold = 100;
-    const maxShakeTranslate = 8;
-    const maxScaleIncrease = 0.015;
-
-    let bassTransform = '';
-    if (bass > minBassThreshold) {
-        const shakeAmount = (bass - minBassThreshold) * intensityFactor / 255;
-
-        const translateX = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
-        const translateY = (Math.random() - 0.5) * 2 * maxShakeTranslate * shakeAmount;
-        bassTransform += ` translateX(${translateX}px) translateY(${translateY}px)`;
-
-        const scaleAmount = 1 + (shakeAmount * maxScaleIncrease);
-        bassTransform += ` scale(${scaleAmount})`;
-    } else {
-        bassTransform = ` scale(1)`;
-    }
-
-    mainContentWrapper.style.transform = currentTiltTransform + bassTransform;
-
-    animationFrameId = requestAnimationFrame(animateBass);
-}
+async function initAudioAnalysis() { ... }
+function animateBass() { ... }
 */
