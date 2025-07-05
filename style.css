@@ -388,6 +388,39 @@ body {
     box-shadow: 0 0 15px rgba(0, 255, 192, 0.7); */
 }
 
+/* NEW: Style for the "Join Now!" button */
+#joinNowBtn {
+    background-color: #7289DA; /* Discord blue */
+    color: #ffffff; /* White text */
+    border: none;
+    padding: 15px 30px; /* Slightly smaller than "Click to Enter" */
+    border-radius: 8px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.2em; /* Adjusted font size */
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(114, 137, 218, 0.7); /* Discord blue glow */
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    display: flex; /* For icon and text alignment */
+    align-items: center;
+    gap: 8px; /* Space between icon and text */
+    margin-top: 25px; /* Add some space below the header image */
+}
+
+#joinNowBtn .material-icons {
+    font-size: 1.2em; /* Match button font size */
+}
+
+#joinNowBtn:hover {
+    background-color: #677BC4; /* Darker Discord blue on hover */
+    transform: scale(1.02);
+    box-shadow: 0 0 25px rgba(114, 137, 218, 0.9); /* Intensify glow on hover */
+}
+
+#joinNowBtn:active {
+    transform: scale(0.98);
+}
+
+
 /* Hide the native audio controls */
 audio {
     display: none;
