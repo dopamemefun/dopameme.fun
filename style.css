@@ -417,15 +417,33 @@ body {
     100% { background-position: -200% 0; }
 }
 
+/* Tighter bounce animation */
 @keyframes universal-bounce {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
+  50% { transform: scale(1.01); } /* Reduced from 1.03 to 1.01 */
 }
 
 .bounce-active {
   animation: universal-bounce 0.5s infinite;
   transform-origin: center;
-  display: inline-block; /* Ensures proper transform application */
+  display: inline-block;
+}
+
+/* Special fix for volume control */
+.volume-control.bounce-active {
+  transform-origin: left center; /* Keeps volume slider anchored */
+}
+
+/* Progress bar container fix */
+.progress-bar-container.bounce-active {
+  transform-origin: left center;
+}
+
+/* Time display formatting */
+.time-display {
+  min-width: 120px; /* Prevents layout shift */
+  text-align: center;
+  font-feature-settings: "tnum"; /* Tabular numbers for consistent width */
 }
 
 /* Fix for elements that need to remain block-level */
